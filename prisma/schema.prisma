@@ -11,8 +11,8 @@ model Sensor {
   id        Int             @id @default(autoincrement())
   type      String
   location  String
-  longitude Float
-  latitude  Float
+  longitude String
+  latitude  String
   status    String
   readings  SensorReading[]
 }
