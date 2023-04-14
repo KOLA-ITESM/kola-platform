@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
@@ -39,21 +41,23 @@ const Sensors = ({ sensors }) => {
 
               <TableBody>
                 {sensors.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(sensor => (
-                  <TableRow hover role='checkbox' tabIndex={-1} key={sensor.id}>
-                    <TableCell>{sensor.id}</TableCell>
-                    <TableCell>{sensor.type}</TableCell>
-                    <TableCell>{sensor.location}</TableCell>
-                    <TableCell>
-                      {sensor.status === 'active' ? (
-                        <div className='flex items-center justify-center space-x-2'>
-                          <div className='w-2 h-2 rounded-full bg-emerald-500 inline-block' />
-                          <p className='text-emerald-500'>Active</p>
-                        </div>
-                      ) : (
-                        <span className='chip chip-danger'>Inactive</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                  <Link key={sensor.id} href={`/sensors/${sensor.id}`}>
+                    <TableRow hover role='checkbox' tabIndex={-1} key={sensor.id} className='cursor-pointer'>
+                      <TableCell>{sensor.id}</TableCell>
+                      <TableCell>{sensor.type}</TableCell>
+                      <TableCell>{sensor.location}</TableCell>
+                      <TableCell>
+                        {sensor.status === 'active' ? (
+                          <div className='flex items-center justify-center space-x-2'>
+                            <div className='w-2 h-2 rounded-full bg-emerald-500 inline-block' />
+                            <p className='text-emerald-500'>Active</p>
+                          </div>
+                        ) : (
+                          <span className='chip chip-danger'>Inactive</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </Link>
                 ))}
               </TableBody>
             </Table>
