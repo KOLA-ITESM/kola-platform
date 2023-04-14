@@ -21,7 +21,7 @@ const TrophyImg = styled('img')({
   position: 'absolute'
 })
 
-const Trophy = () => {
+const WelcomeCard = () => {
   // ** Hook
   const theme = useTheme()
   const imageSrc = theme.palette.mode === 'light' ? 'triangle-light.png' : 'triangle-dark.png'
@@ -29,21 +29,18 @@ const Trophy = () => {
   return (
     <Card sx={{ position: 'relative' }}>
       <CardContent>
-        <Typography variant='h6'>Congratulations John! 🥳</Typography>
+        <Typography variant='h6'>Welcome to KOLA Dashboard!</Typography>
         <Typography variant='body2' sx={{ letterSpacing: '0.25px' }}>
-          Best seller of the month
+          Where you can find an overview of KOLAs sensors and their data.
         </Typography>
-        <Typography variant='h5' sx={{ my: 4, color: 'primary.main' }}>
-          $42.8k
-        </Typography>
-        <Button size='small' variant='contained'>
-          View Sales
+        
+        <Button size='small' variant='contained' sx={{marginTop:'30px'}}>
+          Go to Sensors
         </Button>
         <TriangleImg alt='triangle background' src={`/images/misc/${imageSrc}`} />
-        <TrophyImg alt='trophy' src='/images/misc/trophy.png' />
       </CardContent>
     </Card>
   )
 }
 
-export default Trophy
+export default WelcomeCard
