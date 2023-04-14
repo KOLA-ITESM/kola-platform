@@ -38,7 +38,7 @@ const Sensors = ({ sensors }) => {
               </TableHead>
 
               <TableBody>
-                {sensors.map(sensor => (
+                {sensors.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(sensor => (
                   <TableRow hover role='checkbox' tabIndex={-1} key={sensor.id}>
                     <TableCell>{sensor.id}</TableCell>
                     <TableCell>{sensor.type}</TableCell>
