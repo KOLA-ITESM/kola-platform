@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router'
+
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import Button from '@mui/material/Button'
@@ -13,18 +15,11 @@ const TriangleImg = styled('img')({
   position: 'absolute'
 })
 
-// Styled component for the trophy image
-const TrophyImg = styled('img')({
-  right: 36,
-  bottom: 20,
-  height: 98,
-  position: 'absolute'
-})
-
 const WelcomeCard = () => {
   // ** Hook
   const theme = useTheme()
   const imageSrc = theme.palette.mode === 'light' ? 'triangle-light.png' : 'triangle-dark.png'
+  const router = useRouter()
 
   return (
     <Card sx={{ position: 'relative' }}>
@@ -33,8 +28,8 @@ const WelcomeCard = () => {
         <Typography variant='body2' sx={{ letterSpacing: '0.25px' }}>
           Where you can find an overview of KOLAs sensors and their data.
         </Typography>
-        
-        <Button size='small' variant='contained' sx={{marginTop:'30px'}}>
+
+        <Button size='small' variant='contained' sx={{ marginTop: '30px' }} onClick={() => router.push('/sensors')}>
           Go to Sensors
         </Button>
         <TriangleImg alt='triangle background' src={`/images/misc/${imageSrc}`} />
