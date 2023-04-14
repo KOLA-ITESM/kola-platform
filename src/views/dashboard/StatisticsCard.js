@@ -15,30 +15,14 @@ import DotsVertical from 'mdi-material-ui/DotsVertical'
 import CellphoneLink from 'mdi-material-ui/CellphoneLink'
 import AccountOutline from 'mdi-material-ui/AccountOutline'
 
+import AccessPointPlus from 'mdi-material-ui/AccessPointPlus'
+
 const salesData = [
   {
-    stats: '245k',
-    title: 'Sales',
+    stats: '5',
     color: 'primary',
-    icon: <TrendingUp sx={{ fontSize: '1.75rem' }} />
-  },
-  {
-    stats: '12.5k',
-    title: 'Customers',
-    color: 'success',
-    icon: <AccountOutline sx={{ fontSize: '1.75rem' }} />
-  },
-  {
-    stats: '1.54k',
-    color: 'warning',
-    title: 'Products',
-    icon: <CellphoneLink sx={{ fontSize: '1.75rem' }} />
-  },
-  {
-    stats: '$88k',
-    color: 'info',
-    title: 'Revenue',
-    icon: <CurrencyUsd sx={{ fontSize: '1.75rem' }} />
+    title: 'Sensors',
+    icon: <AccessPointPlus sx={{ fontSize: '1.75rem' }} />
   }
 ]
 
@@ -80,10 +64,7 @@ const StatisticsCard = () => {
         }
         subheader={
           <Typography variant='body2'>
-            <Box component='span' sx={{ fontWeight: 600, color: 'text.primary' }}>
-              Total 48.5% growth
-            </Box>{' '}
-            😎 this month
+            Have a look at the sensors overview data. <br />
           </Typography>
         }
         titleTypographyProps={{
