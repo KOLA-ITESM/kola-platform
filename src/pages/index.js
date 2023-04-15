@@ -1,14 +1,8 @@
+import { useEffect, useRef, useState } from 'react'
+import mapboxgl from 'mapbox-gl'
+
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
-
-// ** Icons Imports
-import Poll from 'mdi-material-ui/Poll'
-import CurrencyUsd from 'mdi-material-ui/CurrencyUsd'
-import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
-import BriefcaseVariantOutline from 'mdi-material-ui/BriefcaseVariantOutline'
-
-// ** Custom Components Imports
-import CardStatisticsVerticalComponent from 'src/@core/components/card-statistics/card-stats-vertical'
 
 // ** Styled Component Import
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
@@ -19,7 +13,34 @@ import StatisticsCard from 'src/views/dashboard/StatisticsCard'
 
 import prisma from '../../prisma'
 
+mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2cTJlMHlzY2UifQ.-0tFUeRnCr8jISRMn_CRvw'
+
 const Dashboard = ({ sensors }) => {
+  const mapContainer = useRef()
+
+  useEffect(() => {
+    // generate a list of all sensor coordinates and store in array
+    const sensorCoordinates = sensors.map(sensor => [parseFloat(sensor.longitude), parseFloat(sensor.latitude)])
+
+    console.log(sensorCoordinates)
+
+    const map = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: sensorCoordinates[0],
+      zoom: 10
+    })
+
+    // add a marker for each sensor
+    sensorCoordinates.forEach(sensorCoordinate => {
+      new mapboxgl.Marker().setLngLat(sensorCoordinate).addTo(map)
+    })
+
+    return () => {
+      map.remove()
+    }
+  }, [])
+
   return (
     <ApexChartWrapper>
       <Grid container spacing={6}>
@@ -28,6 +49,10 @@ const Dashboard = ({ sensors }) => {
         </Grid>
         <Grid item xs={12} md={8}>
           <StatisticsCard sensors={sensors} />
+        </Grid>
+
+        <Grid item xs={12}>
+          <div ref={mapContainer} style={{ width: '100%', height: '500px' }} className='rounded-lg' />
         </Grid>
       </Grid>
     </ApexChartWrapper>

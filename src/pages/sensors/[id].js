@@ -50,7 +50,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
       </Grid>
 
       <Grid item xs={4}>
-        <div ref={mapContainer} style={{ width: '100%', height: '300px' }} className='rounded-lg'></div>
+        <div ref={mapContainer} style={{ width: '100%', height: '300px' }} className='rounded-lg' />
       </Grid>
       <Grid item xs={8}>
         <TableContainer>
