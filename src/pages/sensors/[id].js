@@ -30,7 +30,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
+      style: 'mapbox://styles/mapbox/satellite-streets-v11',
       center: sensorCoordinates,
       zoom: 10
     })
