@@ -9,17 +9,12 @@ import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 
 // ** Icons Imports
-import TrendingUp from 'mdi-material-ui/TrendingUp'
-import CurrencyUsd from 'mdi-material-ui/CurrencyUsd'
 import DotsVertical from 'mdi-material-ui/DotsVertical'
-import CellphoneLink from 'mdi-material-ui/CellphoneLink'
-import AccountOutline from 'mdi-material-ui/AccountOutline'
-
 import AccessPointPlus from 'mdi-material-ui/AccessPointPlus'
 
 const salesData = [
   {
-    stats: '5',
+    stats: null,
     color: 'primary',
     title: 'Sensors',
     icon: <AccessPointPlus sx={{ fontSize: '1.75rem' }} />
@@ -52,7 +47,9 @@ const renderStats = () => {
   ))
 }
 
-const StatisticsCard = () => {
+const StatisticsCard = ({ sensors }) => {
+  salesData.find(data => data.title === 'Sensors').stats = sensors?.length
+
   return (
     <Card>
       <CardHeader

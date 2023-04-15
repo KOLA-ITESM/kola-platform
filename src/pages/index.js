@@ -1,28 +1,46 @@
+import { useEffect, useRef, useState } from 'react'
+import mapboxgl from 'mapbox-gl'
+
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
-
-// ** Icons Imports
-import Poll from 'mdi-material-ui/Poll'
-import CurrencyUsd from 'mdi-material-ui/CurrencyUsd'
-import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
-import BriefcaseVariantOutline from 'mdi-material-ui/BriefcaseVariantOutline'
-
-// ** Custom Components Imports
-import CardStatisticsVerticalComponent from 'src/@core/components/card-statistics/card-stats-vertical'
 
 // ** Styled Component Import
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 // ** Demo Components Imports
-import Table from 'src/views/dashboard/Table'
 import WelcomeCard from 'src/views/dashboard/WelcomeCard'
-import TotalEarning from 'src/views/dashboard/TotalEarning'
 import StatisticsCard from 'src/views/dashboard/StatisticsCard'
-import WeeklyOverview from 'src/views/dashboard/WeeklyOverview'
-import DepositWithdraw from 'src/views/dashboard/DepositWithdraw'
-import SalesByCountries from 'src/views/dashboard/SalesByCountries'
 
-const Dashboard = () => {
+import prisma from '../../prisma'
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2cTJlMHlzY2UifQ.-0tFUeRnCr8jISRMn_CRvw'
+
+const Dashboard = ({ sensors }) => {
+  const mapContainer = useRef()
+
+  useEffect(() => {
+    // generate a list of all sensor coordinates and store in array
+    const sensorCoordinates = sensors.map(sensor => [parseFloat(sensor.longitude), parseFloat(sensor.latitude)])
+
+    console.log(sensorCoordinates)
+
+    const map = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: sensorCoordinates[0],
+      zoom: 10
+    })
+
+    // add a marker for each sensor
+    sensorCoordinates.forEach(sensorCoordinate => {
+      new mapboxgl.Marker().setLngLat(sensorCoordinate).addTo(map)
+    })
+
+    return () => {
+      map.remove()
+    }
+  }, [])
+
   return (
     <ApexChartWrapper>
       <Grid container spacing={6}>
@@ -30,72 +48,25 @@ const Dashboard = () => {
           <WelcomeCard />
         </Grid>
         <Grid item xs={12} md={8}>
-          <StatisticsCard />
+          <StatisticsCard sensors={sensors} />
         </Grid>
-        {/* <Grid item xs={12} md={6} lg={4}>
-          <WeeklyOverview />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <TotalEarning />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <Grid container spacing={6}>
-            <Grid item xs={6}>
-              <CardStatisticsVerticalComponent
-                stats='$25.6k'
-                icon={<Poll />}
-                color='success'
-                trendNumber='+42%'
-                title='Total Profit'
-                subtitle='Weekly Profit'
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <CardStatisticsVerticalComponent
-                stats='$78'
-                title='Refunds'
-                trend='negative'
-                color='secondary'
-                trendNumber='-15%'
-                subtitle='Past Month'
-                icon={<CurrencyUsd />}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <CardStatisticsVerticalComponent
-                stats='862'
-                trend='negative'
-                trendNumber='-18%'
-                title='New Project'
-                subtitle='Yearly Project'
-                icon={<BriefcaseVariantOutline />}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <CardStatisticsVerticalComponent
-                stats='15'
-                color='warning'
-                trend='negative'
-                trendNumber='-18%'
-                subtitle='Last Week'
-                title='Sales Queries'
-                icon={<HelpCircleOutline />}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <SalesByCountries />
-        </Grid>
-        <Grid item xs={12} md={12} lg={8}>
-          <DepositWithdraw />
-        </Grid>
+
         <Grid item xs={12}>
-          <Table />
-        </Grid> */}
+          <div ref={mapContainer} style={{ width: '100%', height: '500px' }} className='rounded-lg' />
+        </Grid>
       </Grid>
     </ApexChartWrapper>
   )
+}
+
+export const getServerSideProps = async () => {
+  const sensors = await prisma.sensor.findMany({})
+
+  return {
+    props: {
+      sensors
+    }
+  }
 }
 
 export default Dashboard
