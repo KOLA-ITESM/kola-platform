@@ -26,7 +26,7 @@ const Dashboard = ({ sensors }) => {
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v11',
+      style: 'mapbox://styles/mapbox/streets-v11',
       center: sensorCoordinates[0],
       zoom: 10
     })
