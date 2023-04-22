@@ -18,9 +18,10 @@ model Sensor {
 }
 
 model SensorReading {
-  id            Int       @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   sensorId      Int
-  readingValues Decimal[]
+  readingId     Int
+  readingValues String
   readingTime   DateTime
-  sensor        Sensor    @relation(fields: [sensorId], references: [id])
+  sensor        Sensor   @relation(fields: [sensorId], references: [id])
 }
