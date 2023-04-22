@@ -41,21 +41,29 @@ export default async function handler(req, res) {
     }
     // if csv file is in body, then create sensors
     else {
-      const csvJson = await csv().fromString(csvFile)
-      const newSensors = []
-      for (let i = 0; i < csvJson.length; i++) {
-        const sensor = csvJson[i]
-        const newSensor = await prisma.sensor.create({
-          data: {
-            type: sensor.name,
-            location: sensor.description,
-            longitude: sensor.longitude,
-            latitude: sensor.latitude,
-            status: 'active'
-          }
-        })
-        newSensors.push(newSensor)
+      const options = {
+        delimiter: ',',
+        noheader: false
       }
+
+      const csvJson = await csv(options).fromString(csvFile)
+      const newSensors = []
+
+      console.log(csvJson)
+
+      // for (let i = 0; i < csvJson.length; i++) {
+      //   const sensor = csvJson[i]
+      //   const newSensor = await prisma.sensor.create({
+      //     data: {
+      //       type: sensor.name,
+      //       location: sensor.description,
+      //       longitude: sensor.longitude,
+      //       latitude: sensor.latitude,
+      //       status: 'active'
+      //     }
+      //   })
+      //   newSensors.push(newSensor)
+      // }
       res.status(200).json({ message: 'Sensors created', newSensors })
     }
   }
