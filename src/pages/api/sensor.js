@@ -1,6 +1,20 @@
 import prisma from '../../../prisma/index'
 const csv = require('csvtojson')
 
+function cleanRawCsv(rawCsv) {
+  const lines = rawCsv.split('\n')
+  const headerLineIndex = lines.findIndex(line => line.startsWith('name,latitude,longitude,description'))
+
+  if (headerLineIndex === -1) {
+    throw new Error('Column headers not found')
+  }
+
+  const cleanedLines = lines.slice(headerLineIndex, -2)
+  const cleanedCsv = cleanedLines.join('\n')
+
+  return cleanedCsv
+}
+
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     // check if all param is set to true on request params
@@ -41,8 +55,9 @@ export default async function handler(req, res) {
     }
     // if csv file is in body, then create sensors
     else {
-      const csvJson = await csv().fromString(csvFile)
+      const csvJson = await csv().fromString(cleanRawCsv(csvFile))
       const newSensors = []
+
       for (let i = 0; i < csvJson.length; i++) {
         const sensor = csvJson[i]
         const newSensor = await prisma.sensor.create({
@@ -56,6 +71,7 @@ export default async function handler(req, res) {
         })
         newSensors.push(newSensor)
       }
+
       res.status(200).json({ message: 'Sensors created', newSensors })
     }
   }
