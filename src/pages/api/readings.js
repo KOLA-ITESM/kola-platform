@@ -35,25 +35,37 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const csvFile = req.body
-    // check if csv file is in body
-    if (csvFile === undefined) {
-      res.status(400).json({ message: 'No csv file found in body' })
+    const { csvFile, sensorId } = req.body
+    // check if csv file and sensorId are in body
+    if (csvFile === undefined || sensorId === undefined) {
+      res.status(400).json({ message: 'CSV file or reading ID not found in body' })
     }
-    // if csv file is in body, then create sensors
+    // if csv file and sensorId are in body, then create readings
     else {
       const csvJson = await csv().fromString(csvFile)
       const newReadings = []
       for (let i = 0; i < csvJson.length; i++) {
         const reading = csvJson[i]
-        const newReading = await prisma.sensorReading.create({
-          data: {
-            sensorId: reading.id,
-            readingValues: reading.value,
-            readingTime: reading.date
-          }
+        // check if the read already exists
+        const existingReading = await prisma.sensorReading.findFirst({
+          where: {
+            readingId: reading.id,
+            sensorId: sensorId
+          },
         })
-        newReadings.push(newReading)
+  
+        if (existingReading === null) {
+          // create new record
+          const newReading = await prisma.sensorReading.create({
+            data: {
+              readingId: reading.id,
+              readingValues: reading.value,
+              readingTime: reading.date,
+              sensorId: sensorId
+            },
+          })
+          newReadings.push(newReading)
+        }
       }
       res.status(200).json({ message: 'Readings created', newReadings })
     }
