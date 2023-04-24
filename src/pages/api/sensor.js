@@ -48,13 +48,22 @@ export default async function handler(req, res) {
     }
   }
   if (req.method === 'POST') {
-    const csvFile = req.body
-    // check if csv file is in body
-    if (csvFile === undefined) {
-      res.status(400).json({ message: 'No csv file found in body' })
-    }
-    // if csv file is in body, then create sensors
-    else {
+    // check if post request is for csv file or not
+    if (req.query.csv && req.query.csv === 'false') {
+      const { type, location, longitude, latitude } = req.body
+      const newSensors = []
+      const newSensor = await prisma.sensor.create({
+        data: {
+          type,
+          location,
+          longitude,
+          latitude,
+          status: 'active'
+        }
+      })
+      newSensors.push(newSensor)
+      res.status(200).json({ message: 'Sensor created', newSensors })
+    } else if (req.query.csv && req.query.csv === 'true') {
       const csvJson = await csv().fromString(cleanRawCsv(csvFile))
       const newSensors = []
 
@@ -71,8 +80,9 @@ export default async function handler(req, res) {
         })
         newSensors.push(newSensor)
       }
-
       res.status(200).json({ message: 'Sensors created', newSensors })
+    } else {
+      res.status(400).json({ message: 'No csv param found in request' })
     }
   }
   if (req.method === 'DELETE') {

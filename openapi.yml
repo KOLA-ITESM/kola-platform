@@ -1,0 +1,75 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: KOLA Dashboard API
+  license:
+    name: MIT
+  description: |
+    This is the API for the KOLA Dashboard. Used to manage sensors and data.
+servers:
+  - url: http://localhost:3000/api
+paths:
+  /sensor:
+    get:
+      summary: Get one or all sensors
+      description: Depending on the query parameters, either one or all sensors are returned.
+      tags:
+        - Sensor
+      operationId: getSensor
+      parameters:
+        - $ref: '#/components/parameters/all'
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sensor'
+
+
+
+
+
+
+components:
+  parameters:
+    all:
+      in: query
+      name: all
+      schema:
+        type: boolean
+      description: Apply corresponding action to all sensors
+    id:
+      in: query
+      name: id
+      schema:
+        type: string
+      description: Apply corresponding action to sensor with given id
+    csv:
+      in: query
+      name: csv
+      schema:
+        type: boolean
+      description: Use CSV as input format
+  schemas:
+    Sensor:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the sensor
+        location:
+          type: string
+          description: Location of the Sensor
+        longitude:
+          type: string
+          description: Longitude of the sensor
+        latitude:
+          type: string
+          description: Latitude of the sensor
+        status:
+          type: string
+          description: Status of the sensor
