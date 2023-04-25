@@ -10,6 +10,8 @@ import CreditCardOutline from 'mdi-material-ui/CreditCardOutline'
 import AccountPlusOutline from 'mdi-material-ui/AccountPlusOutline'
 import AlertCircleOutline from 'mdi-material-ui/AlertCircleOutline'
 import GoogleCirclesExtended from 'mdi-material-ui/GoogleCirclesExtended'
+import AccessPointPlus from 'mdi-material-ui/AccessPointPlus'
+import DatabasePlusOutline from 'mdi-material-ui/DatabasePlusOutline'
 
 const navigation = () => {
   return [
@@ -23,6 +25,17 @@ const navigation = () => {
       icon: AccessIcon,
       path: '/sensors'
     },
+    {
+      title: 'Add Sensor',
+      icon: AccessPointPlus,
+      path: '/add-sensor'
+    },
+    {
+      title: 'Add Data',
+      icon: DatabasePlusOutline,
+      path: '/add-data'
+    },
+    
     {
       title: 'Account Settings',
       icon: AccountCogOutline,
