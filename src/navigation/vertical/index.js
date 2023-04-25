@@ -21,7 +21,7 @@ const navigation = () => {
       path: '/'
     },
     {
-      sectionTitle: 'Pages'
+      sectionTitle: 'Functionality'
     },
     {
       title: 'Sensors',
