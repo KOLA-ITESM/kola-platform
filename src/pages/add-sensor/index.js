@@ -17,6 +17,10 @@ import mapboxgl from 'mapbox-gl'
 
 import { useEffect, useRef, useState } from 'react'
 
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { toast } from 'react-toastify'
+
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2cTJlMHlzY2UifQ.-0tFUeRnCr8jISRMn_CRvw'
 
 const AddSensors = () => {
@@ -62,6 +66,11 @@ const AddSensors = () => {
   const handleSubmit = async e => {
     e.preventDefault()
 
+    if (!sensors || !latitude || !longitude || !location || !sensorType) {
+      toast.error('Please fill all the fields')
+      return
+    }
+
     const data = {
       type: sensorType,
       location: location,
@@ -79,8 +88,10 @@ const AddSensors = () => {
 
     if (response.ok) {
       const result = await response.json()
+      toast.success('Sensor created successfully')
       console.log(result)
     } else {
+      toast.error('Error creating sensor')
       console.log('Error')
     }
   }
@@ -169,6 +180,7 @@ const AddSensors = () => {
             <Button color='primary' variant='contained' onClick={handleSubmit}>
               Add Sensor
             </Button>
+            <ToastContainer />
           </Box>
         </Card>
       </Grid>
