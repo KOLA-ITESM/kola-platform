@@ -52,6 +52,7 @@ export default async function handler(req, res) {
     if (req.query.csv && req.query.csv === 'false') {
       const { type, location, longitude, latitude } = req.body
       const newSensors = []
+
       const newSensor = await prisma.sensor.create({
         data: {
           type,
@@ -69,6 +70,7 @@ export default async function handler(req, res) {
 
       for (let i = 0; i < csvJson.length; i++) {
         const sensor = csvJson[i]
+
         const newSensor = await prisma.sensor.create({
           data: {
             type: sensor.name,
