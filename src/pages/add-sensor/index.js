@@ -167,7 +167,7 @@ const AddSensors = () => {
             }}
           >
             <Button color='primary' variant='contained' onClick={handleSubmit}>
-              Add Sensor
+              Add Data
             </Button>
           </Box>
         </Card>
