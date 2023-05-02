@@ -16,16 +16,30 @@ export default async function handler(req, res) {
     }
     // check if id param is set on request params
     else if (req.query.id) {
-      // Check if sensor exists
+      // Check if reading exist
       const reading = await prisma.sensorReading.findUnique({
         where: {
           id: parseInt(req.query.id)
         }
       })
-      if (sensor !== null) {
+      if (reading !== null) {
         res.status(200).json({ message: 'Reading found', reading })
       } else {
         res.status(404).json({ message: 'Reading not found' })
+      }
+    }
+    // check if sensorId is set on request params
+    else if (req.query.sensorId) {
+      // checck if readings exist in that sensor
+      const readings = await prisma.sensorReading.findMany({
+        where: {
+          sensorId: parseInt(req.query.sensorId)
+        }
+      })
+      if (readings !== null) {
+        res.status(200).json({ message: 'Readings found', readings })
+      } else {
+        res.status(400).json({ message: 'Readings not found' })
       }
     }
     // if no id or all param is set
@@ -35,15 +49,14 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { csvFile, sensorId } = req.body
-    // check if csv file and sensorId are in body
-    if (csvFile === undefined || sensorId === undefined) {
-      res.status(400).json({ message: 'CSV file or reading ID not found in body' })
-    }
-    // if csv file and sensorId are in body, then create readings
-    else {
+    // check if post request meets the required params
+    if (req.query.csv && req.query.csv === 'true' && req.query.id) {
+      const csvFile = req.body
+      const sensorId = parseInt(req.query.id)
+
       const csvJson = await csv().fromString(csvFile)
       const newReadings = []
+
       for (let i = 0; i < csvJson.length; i++) {
         const reading = csvJson[i]
         // check if the read already exists
@@ -60,7 +73,7 @@ export default async function handler(req, res) {
             data: {
               readingId: reading.id,
               readingValues: reading.value,
-              readingTime: reading.date,
+              readingTime: new Date(reading.date),
               sensorId: sensorId
             },
           })
@@ -68,9 +81,11 @@ export default async function handler(req, res) {
         }
       }
       res.status(200).json({ message: 'Readings created', newReadings })
+    } else {
+      res.status(400).json({ message: 'CSV file or reading ID not found in request' })
     }
   }
-
+  
   if (req.method === 'DELETE') {
     //check if all param i set to true on request params and delete all readings
     if (req.query.all && req.query.all === 'true') {
@@ -79,16 +94,15 @@ export default async function handler(req, res) {
       res.status(200).json({ message: 'All readings deleted' })
     }
     // check if id param is set on request params, and only delete one sensor
-    // check if id param is set on request params, and only delete one sensor
     else if (req.query.id) {
-      // Check if sensor exists
+      // Check if reading exists
       const reading = await prisma.sensorReading.findUnique({
         where: {
           id: parseInt(req.query.id)
         }
       })
       if (reading !== null) {
-        //delete sensor
+        //delete reading
         await prisma.sensorReading.delete({
           where: {
             id: parseInt(req.query.id)
