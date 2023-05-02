@@ -58,8 +58,8 @@ const Sensor = ({ sensor, sensorReadings }) => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>Date / Time</TableCell>
                 <TableCell>Reading</TableCell>
+                <TableCell>Date / Time</TableCell>
               </TableRow>
             </TableHead>
 
@@ -67,8 +67,8 @@ const Sensor = ({ sensor, sensorReadings }) => {
               {sensorReadings.map(sensorReading => (
                 <TableRow hover role='checkbox' tabIndex={-1} key={sensorReading.id} className='cursor-pointer'>
                   <TableCell>{sensorReading.id}</TableCell>
-                  <TableCell>{sensorReading.createdAt}</TableCell>
-                  <TableCell>{sensorReading.reading}</TableCell>
+                  <TableCell>{sensorReading.readingValues}</TableCell>
+                  <TableCell>{sensorReading.readingTime}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -78,7 +78,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
         <TablePagination
           rowsPerPageOptions={[10]}
           component='div'
-          count={sensorReadings}
+          count={sensorReadings.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -103,10 +103,15 @@ export const getServerSideProps = async query => {
     }
   })
 
+  const serializedSensorReadings = sensorReadings.map(reading => ({
+    ...reading,
+    readingTime: reading.readingTime.toISOString()
+  }))
+
   return {
     props: {
       sensor,
-      sensorReadings
+      sensorReadings: serializedSensorReadings
     }
   }
 }

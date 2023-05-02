@@ -10,8 +10,8 @@ import {
   FormControl,
   Select,
   InputLabel,
-  MenuItem, 
-  TableContainer, 
+  MenuItem,
+  TableContainer,
   Table,
   TableHead,
   TableRow,
@@ -23,7 +23,7 @@ import {
 import { useEffect, useState } from 'react'
 
 const AddData = () => {
-  const [fileCsv, setFileCsv] = useState(null);
+  const [fileCsv, setFileCsv] = useState(null)
   const [selectedSensor, setSelectedSensor] = useState('')
   const [sensors, setSensors] = useState([])
   const [readings, setReadings] = useState([])
@@ -44,11 +44,11 @@ const AddData = () => {
       const response = await fetch('/api/sensor?all=true', {
         method: 'GET'
       })
-  
+
       if (response.ok) {
         const result = await response.json()
-        const sensorIds = result.sensors.map((sensor) => ({
-          id: sensor.id, 
+        const sensorIds = result.sensors.map(sensor => ({
+          id: sensor.id,
           type: sensor.type
         }))
         setSensors(sensorIds)
@@ -57,8 +57,8 @@ const AddData = () => {
         console.log('Error')
       }
     }
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const handleSensorSelection = async e => {
     e.preventDefault
@@ -66,7 +66,7 @@ const AddData = () => {
     const response = await fetch(`/api/readings?sensorId=${e}`, {
       method: 'GET'
     })
-  
+
     if (response.ok) {
       const result = await response.json()
       setReadings(result.readings)
@@ -111,24 +111,24 @@ const AddData = () => {
                 <Grid item xs={12}>
                   <FormControl fullWidth variant='outlined'>
                     <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
-                    <Select 
-                      labelId='select-sensor-label' 
-                      id='select-sensor' 
+                    <Select
+                      labelId='select-sensor-label'
+                      id='select-sensor'
                       label='Select Sensor'
                       required
                       value={selectedSensor}
-                      onChange={e => {setSelectedSensor(e.target.value), handleSensorSelection(e.target.value)}}
+                      onChange={e => {
+                        setSelectedSensor(e.target.value), handleSensorSelection(e.target.value)
+                      }}
                     >
                       {sensors.map(sensor => {
-                        return (
-                          <MenuItem value={sensor.id}>{sensor.type}</MenuItem>
-                        )
+                        return <MenuItem value={sensor.id}>{sensor.type}</MenuItem>
                       })}
                     </Select>
                   </FormControl>
                 </Grid>
-                
-                <Grid item xs={12}>  
+
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     name='upload-file'
@@ -151,11 +151,7 @@ const AddData = () => {
               p: 2
             }}
           >
-            <Button 
-              color='primary' 
-              variant='contained'
-              type='submit'
-            >
+            <Button color='primary' variant='contained' type='submit'>
               Add Data
             </Button>
           </Box>
@@ -163,11 +159,7 @@ const AddData = () => {
       </Grid>
       <Grid item xs={6}>
         <Card>
-          <CardHeader
-              title='Data'
-              titleTypographyProps={{ variant: 'h6' }}
-              subheader='All data for the sensor'
-          />
+          <CardHeader title='Data' titleTypographyProps={{ variant: 'h6' }} subheader='All data for the sensor' />
           <Divider />
           <CardContent>
             <TableContainer sx={{ maxHeight: 600 }}>
@@ -181,11 +173,11 @@ const AddData = () => {
                 </TableHead>
                 <TableBody>
                   {readings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(reading => (
-                      <TableRow hover role='checkbox' tabIndex={-1} key={reading.id} className='cursor-pointer'>
-                        <TableCell>{reading.readingId}</TableCell>
-                        <TableCell>{reading.readingTime}</TableCell>
-                        <TableCell>{reading.readingValues}</TableCell>
-                      </TableRow>
+                    <TableRow hover role='checkbox' tabIndex={-1} key={reading.id} className='cursor-pointer'>
+                      <TableCell>{reading.readingId}</TableCell>
+                      <TableCell>{reading.readingTime}</TableCell>
+                      <TableCell>{reading.readingValues}</TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
