@@ -20,7 +20,7 @@ model Sensor {
 model SensorReading {
   id            Int      @id @default(autoincrement())
   sensorId      Int
-  readingId     Int
+  readingId     String
   readingValues String
   readingTime   DateTime
   sensor        Sensor   @relation(fields: [sensorId], references: [id])

@@ -47,6 +47,7 @@ export default async function handler(req, res) {
       res.status(400).json({ message: 'No sensor id found or all param in request' })
     }
   }
+
   if (req.method === 'POST') {
     // check if post request is for csv file or not
     if (req.query.csv && req.query.csv === 'false') {
@@ -84,9 +85,10 @@ export default async function handler(req, res) {
       }
       res.status(200).json({ message: 'Sensors created', newSensors })
     } else {
-      res.status(400).json({ message: 'No csv param found in request' })
+      res.status(400).json({ message: 'CSV param not found in request' })
     }
   }
+
   if (req.method === 'DELETE') {
     //check if all param i set to true on request params and delete all sensors
     if (req.query.all && req.query.all === 'true') {

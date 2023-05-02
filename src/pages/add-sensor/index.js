@@ -166,7 +166,11 @@ const AddSensors = () => {
               p: 2
             }}
           >
-            <Button color='primary' variant='contained' onClick={handleSubmit}>
+            <Button 
+              color='primary' 
+              variant='contained' 
+              onClick={handleSubmit}
+            >
               Add Data
             </Button>
           </Box>
