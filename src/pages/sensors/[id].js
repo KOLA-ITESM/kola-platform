@@ -7,6 +7,7 @@ import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Table
 
 import mapboxgl from 'mapbox-gl'
 import prisma from '../../../prisma'
+import { parseCoordinate } from 'src/@core/utils/parse-coordinates'
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2cTJlMHlzY2UifQ.-0tFUeRnCr8jISRMn_CRvw'
 
@@ -26,7 +27,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
   }
 
   useEffect(() => {
-    const sensorCoordinates = [parseFloat(sensor.longitude), parseFloat(sensor.latitude)]
+    const sensorCoordinates = [parseCoordinate(sensor.longitude), parseCoordinate(sensor.latitude)]
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
