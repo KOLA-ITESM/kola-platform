@@ -19,13 +19,9 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2c
 const Dashboard = ({ sensors }) => {
   const mapContainer = useRef()
 
-  console.log("sensors", sensors)
-
   useEffect(() => {
     // generate a list of all sensor coordinates and store in array
     const sensorCoordinates = sensors.map(sensor => [parseCoordinate(sensor.longitude), parseCoordinate(sensor.latitude)])
-
-    console.log("sensorCoordinates", sensorCoordinates)
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
