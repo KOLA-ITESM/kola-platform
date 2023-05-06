@@ -8,6 +8,7 @@ export default async function handler(req, res) {
       // get all sensors readings
       const readings = await prisma.sensorReading.findMany({})
 
+      // todo: cambiar a 200 con arreglo vacio
       if (readings.length !== 0) {
         res.status(200).json({ message: 'Readings found', readings })
       } else {
@@ -36,6 +37,7 @@ export default async function handler(req, res) {
           sensorId: parseInt(req.query.sensorId)
         }
       })
+
       if (readings !== null) {
         res.status(200).json({ message: 'Readings found', readings })
       } else {
@@ -50,9 +52,9 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     // check if post request meets the required params
-    if (req.query.csv && req.query.csv === 'true' && req.query.id) {
+    if (req.query.csv && req.query.csv === 'true' && req.query.sensorId) {
       const csvFile = req.body
-      const sensorId = parseInt(req.query.id)
+      const sensorId = parseInt(req.query.sensorId)
 
       const csvJson = await csv().fromString(csvFile)
       const newReadings = []
@@ -62,20 +64,20 @@ export default async function handler(req, res) {
         // check if the read already exists
         const existingReading = await prisma.sensorReading.findFirst({
           where: {
-            readingId: reading.id,
+            readingId: parseInt(reading.id),
             sensorId: sensorId
-          },
+          }
         })
-  
+
         if (existingReading === null) {
           // create new record
           const newReading = await prisma.sensorReading.create({
             data: {
-              readingId: reading.id,
+              readingId: parseInt(reading.id),
               readingValues: reading.value,
               readingTime: new Date(reading.date),
               sensorId: sensorId
-            },
+            }
           })
           newReadings.push(newReading)
         }
@@ -85,7 +87,7 @@ export default async function handler(req, res) {
       res.status(400).json({ message: 'CSV file or reading ID not found in request' })
     }
   }
-  
+
   if (req.method === 'DELETE') {
     //check if all param i set to true on request params and delete all readings
     if (req.query.all && req.query.all === 'true') {

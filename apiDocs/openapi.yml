@@ -101,26 +101,126 @@ paths:
                   message:
                     type: string
                     description: Error message
+  /readings:
+    get:
+      summary: Get one or all readings
+      description: Depending on the query parameters, either one or all readings are returned.
+      tags:
+        - Readings
+      operationId: getReading
+      parameters:
+        - $ref: '#/components/parameters/all'
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/sensorId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reading'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+    post:
+      summary: Create new reading(s)
+      description: Create new reading(s) with given data.
+      tags:
+        - Readings
+      operationId: postReading
+      parameters:
+        - $ref: '#/components/parameters/sensorId'
+        - $ref: '#/components/parameters/csv'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                  newReadings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reading'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+    delete:
+      summary: Delete reading(s)
+      description: Delete reading(s) with given id(s) and sensorId.
+      tags:
+        - Readings
+      operationId: deleteReading
+      parameters:
+        - $ref: '#/components/parameters/all'
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
 components:
   parameters:
     all:
-      in: query
       name: all
+      in: query
       schema:
         type: boolean
-      description: Apply corresponding action to all sensors
+      description: Apply corresponding action to all objects
     id:
-      in: query
       name: id
+      in: query
+      description: Apply corresponding action to object with given id
       schema:
         type: string
-      description: Apply corresponding action to sensor with given id
-    csv:
+    sensorId:
+      name: sensorId
       in: query
+      description: Apply corresponding action to readings with given sensorId
+      schema:
+        type: string
+    csv:
       name: csv
+      in: query
+      description: Use CSV as input format
       schema:
         type: boolean
-      description: Use CSV as input format
   schemas:
     Sensor:
       type: object
@@ -130,7 +230,7 @@ components:
           description: Unique identifier of the sensor
         location:
           type: string
-          description: Location of the Sensor
+          description: Location of the sensor
         longitude:
           type: string
           description: Longitude of the sensor
@@ -140,3 +240,22 @@ components:
         status:
           type: string
           description: Status of the sensor
+    Reading:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the reading
+        sensorId:
+          type: string
+          description: Unique identifier of the sensor corresponding of the reading
+        readingValues:
+          type: string
+          description: Reading value of the sensor
+        readingTime: 
+          type: string
+          format: date-time
+          description: Time when reading was made
+        readingId:
+          type: string
+          description: Original id of the reading relative to the sensor

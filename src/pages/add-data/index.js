@@ -6,13 +6,13 @@ import {
   CardHeader,
   Divider,
   Grid,
-  TextField,
   FormControl,
   Select,
   InputLabel,
   MenuItem,
   TableContainer,
   Table,
+  TextField,
   TableHead,
   TableRow,
   TableCell,
@@ -21,6 +21,9 @@ import {
 } from '@mui/material'
 
 import { useEffect, useState } from 'react'
+
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const AddData = () => {
   const [fileCsv, setFileCsv] = useState(null)
@@ -52,7 +55,6 @@ const AddData = () => {
           type: sensor.type
         }))
         setSensors(sensorIds)
-        console.log(sensorIds)
       } else {
         console.log('Error')
       }
@@ -63,14 +65,14 @@ const AddData = () => {
   const handleSensorSelection = async e => {
     e.preventDefault
 
-    const response = await fetch(`/api/readings?sensorId=${e}`, {
-      method: 'GET'
-    })
+    const response = await fetch(`/api/readings?sensorId=${e}`)
 
     if (response.ok) {
       const result = await response.json()
-      setReadings(result.readings)
-      console.log(result)
+
+      // todo: cambiar a 200
+      if (response.status !== 404) setReadings(result.readings)
+      else setReadings([])
     } else {
       console.log('Error')
     }
@@ -79,7 +81,12 @@ const AddData = () => {
   const handleSubmit = async e => {
     e.preventDefault()
 
-    const response = await fetch(`/api/readings?csv=true&id=${selectedSensor}`, {
+    if (!fileCsv || !selectedSensor) {
+      toast.error('Please fill all the fields')
+      return
+    }
+
+    const response = await fetch(`/api/readings?csv=true&sensorId=${selectedSensor}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/csv'
@@ -89,10 +96,18 @@ const AddData = () => {
 
     if (response.ok) {
       const result = await response.json()
+      toast.success('Readings created successfully')
       console.log(result)
+      cleanValues()
     } else {
+      toast.error('Error creating readings')
       console.log('Error')
     }
+  }
+
+  const cleanValues = () => {
+    setSelectedSensor('')
+    setFileCsv(null)
   }
 
   return (
@@ -107,39 +122,39 @@ const AddData = () => {
 
           <CardContent>
             <Grid container spacing={3}>
-              <form onSubmit={handleSubmit}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth variant='outlined'>
-                    <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
-                    <Select
-                      labelId='select-sensor-label'
-                      id='select-sensor'
-                      label='Select Sensor'
-                      required
-                      value={selectedSensor}
-                      onChange={e => {
-                        setSelectedSensor(e.target.value), handleSensorSelection(e.target.value)
-                      }}
-                    >
-                      {sensors.map(sensor => {
-                        return <MenuItem value={sensor.id}>{sensor.type}</MenuItem>
-                      })}
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    name='upload-file'
-                    size='small'
-                    type='file'
-                    variant='outlined'
+              {/*<form onSubmit={handleSubmit}>*/}
+              <Grid item xs={12}>
+                <FormControl fullWidth variant='outlined'>
+                  <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
+                  <Select
+                    labelId='select-sensor-label'
+                    id='select-sensor'
+                    label='Select Sensor'
                     required
-                    onChange={e => setFileCsv(e.target.files[0])}
-                  />
-                </Grid>
-              </form>
+                    value={selectedSensor}
+                    onChange={e => {
+                      setSelectedSensor(e.target.value), handleSensorSelection(e.target.value)
+                    }}
+                  >
+                    {sensors.map(sensor => {
+                      return <MenuItem value={sensor.id}>{sensor.type}</MenuItem>
+                    })}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name='upload-file'
+                  size='small'
+                  type='file'
+                  variant='outlined'
+                  required
+                  onChange={e => setFileCsv(e.target.files[0])}
+                />
+              </Grid>
+              {/*</form>*/}
               <Divider />
             </Grid>
           </CardContent>
@@ -151,7 +166,7 @@ const AddData = () => {
               p: 2
             }}
           >
-            <Button color='primary' variant='contained' type='submit'>
+            <Button color='primary' variant='contained' onClick={handleSubmit}>
               Add Data
             </Button>
           </Box>
@@ -192,6 +207,7 @@ const AddData = () => {
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </CardContent>
+          <ToastContainer />
         </Card>
       </Grid>
     </Grid>
