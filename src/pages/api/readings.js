@@ -59,14 +59,12 @@ export default async function handler(req, res) {
       const csvJson = await csv().fromString(csvFile)
       const newReadings = []
 
-      console.log('/api/readings', csvJson)
-
       for (let i = 0; i < csvJson.length; i++) {
         const reading = csvJson[i]
         // check if the read already exists
         const existingReading = await prisma.sensorReading.findFirst({
           where: {
-            readingId: reading.id,
+            readingId: parseInt(reading.id),
             sensorId: sensorId
           }
         })
@@ -75,7 +73,7 @@ export default async function handler(req, res) {
           // create new record
           const newReading = await prisma.sensorReading.create({
             data: {
-              readingId: reading.id,
+              readingId: parseInt(reading.id),
               readingValues: reading.value,
               readingTime: new Date(reading.date),
               sensorId: sensorId

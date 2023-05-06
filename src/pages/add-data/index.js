@@ -55,39 +55,12 @@ const AddData = () => {
           type: sensor.type
         }))
         setSensors(sensorIds)
-        console.log(sensorIds)
       } else {
         console.log('Error')
       }
     }
     fetchData()
   }, [])
-
-  /*useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await fetch('/api/sensor?all=true', { 
-          method: 'GET' 
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch sensors')
-        }
-
-        const result = await response.json()
-        const sensorIds = result.sensors.map(sensor => ({
-          id: sensor.id,
-          type: sensor.type
-        }))
-        setSensors(sensorIds)
-        console.log(sensorIds)
-      } catch (error) {
-        console.error(error);
-        // display error message to the user
-      }
-    }
-    fetchData();
-  }, []);*/
 
   const handleSensorSelection = async e => {
     e.preventDefault
@@ -100,8 +73,6 @@ const AddData = () => {
       // todo: cambiar a 200
       if (response.status !== 404) setReadings(result.readings)
       else setReadings([])
-
-      console.log(result)
     } else {
       console.log('Error')
     }
@@ -110,14 +81,10 @@ const AddData = () => {
   const handleSubmit = async e => {
     e.preventDefault()
 
-    console.log('submitting')
-
     if (!fileCsv || !selectedSensor) {
       toast.error('Please fill all the fields')
       return
     }
-
-    console.log('fileCsv', fileCsv)
 
     const response = await fetch(`/api/readings?csv=true&sensorId=${selectedSensor}`, {
       method: 'POST',
@@ -126,8 +93,6 @@ const AddData = () => {
       },
       body: fileCsv
     })
-
-    console.log('res from handleSubmit', response)
 
     if (response.ok) {
       const result = await response.json()
@@ -139,8 +104,6 @@ const AddData = () => {
       console.log('Error')
     }
   }
-
-  console.log('file csv', fileCsv)
 
   const cleanValues = () => {
     setSelectedSensor('')
@@ -188,7 +151,7 @@ const AddData = () => {
                   type='file'
                   variant='outlined'
                   required
-                  onChange={e => setFileCsv(e.target.value)}
+                  onChange={e => setFileCsv(e.target.files[0])}
                 />
               </Grid>
               {/*</form>*/}
