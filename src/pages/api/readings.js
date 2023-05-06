@@ -50,9 +50,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     // check if post request meets the required params
-    if (req.query.csv && req.query.csv === 'true' && req.query.id) {
+    if (req.query.csv && req.query.csv === 'true' && req.query.sensorId) {
       const csvFile = req.body
-      const sensorId = parseInt(req.query.id)
+      const sensorId = parseInt(req.query.sensorId)
+
+      console.log()
 
       const csvJson = await csv().fromString(csvFile)
       const newReadings = []

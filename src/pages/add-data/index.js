@@ -6,7 +6,6 @@ import {
   CardHeader,
   Divider,
   Grid,
-  TextField,
   FormControl,
   Select,
   InputLabel,
@@ -21,6 +20,9 @@ import {
 } from '@mui/material'
 
 import { useEffect, useState } from 'react'
+
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const AddData = () => {
   const [fileCsv, setFileCsv] = useState(null)
@@ -60,6 +62,32 @@ const AddData = () => {
     fetchData()
   }, [])
 
+  /*useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch('/api/sensor?all=true', { 
+          method: 'GET' 
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch sensors')
+        }
+
+        const result = await response.json()
+        const sensorIds = result.sensors.map(sensor => ({
+          id: sensor.id,
+          type: sensor.type
+        }))
+        setSensors(sensorIds)
+        console.log(sensorIds)
+      } catch (error) {
+        console.error(error);
+        // display error message to the user
+      }
+    }
+    fetchData();
+  }, []);*/
+
   const handleSensorSelection = async e => {
     e.preventDefault
 
@@ -79,7 +107,12 @@ const AddData = () => {
   const handleSubmit = async e => {
     e.preventDefault()
 
-    const response = await fetch(`/api/readings?csv=true&id=${selectedSensor}`, {
+    if (!fileCsv || !selectedSensor) {
+      toast.error('Please fill all the fields')
+      return
+    }
+
+    const response = await fetch(`/api/readings?csv=true&sensorId=${selectedSensor}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/csv'
@@ -89,10 +122,18 @@ const AddData = () => {
 
     if (response.ok) {
       const result = await response.json()
+      toast.success('Readings created successfully')
       console.log(result)
+      cleanValues()
     } else {
+      toast.error('Error creating readings')
       console.log('Error')
     }
+  }
+
+  const cleanValues = () => {
+    setSelectedSensor('')
+    setFileCsv(null)
   }
 
   return (
@@ -107,7 +148,7 @@ const AddData = () => {
 
           <CardContent>
             <Grid container spacing={3}>
-              <form onSubmit={handleSubmit}>
+              {/*<form onSubmit={handleSubmit}>*/}
                 <Grid item xs={12}>
                   <FormControl fullWidth variant='outlined'>
                     <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
@@ -136,10 +177,10 @@ const AddData = () => {
                     type='file'
                     variant='outlined'
                     required
-                    onChange={e => setFileCsv(e.target.files[0])}
+                    onChange={e => setFileCsv(e.target.value)}
                   />
                 </Grid>
-              </form>
+              {/*</form>*/}
               <Divider />
             </Grid>
           </CardContent>
@@ -151,7 +192,7 @@ const AddData = () => {
               p: 2
             }}
           >
-            <Button color='primary' variant='contained' type='submit'>
+            <Button color='primary' variant='contained' onClick={handleSubmit}>
               Add Data
             </Button>
           </Box>
@@ -192,6 +233,7 @@ const AddData = () => {
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </CardContent>
+          <ToastContainer />
         </Card>
       </Grid>
     </Grid>
