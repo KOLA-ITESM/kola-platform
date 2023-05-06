@@ -12,6 +12,7 @@ import {
   MenuItem,
   TableContainer,
   Table,
+  TextField,
   TableHead,
   TableRow,
   TableCell,
@@ -91,13 +92,15 @@ const AddData = () => {
   const handleSensorSelection = async e => {
     e.preventDefault
 
-    const response = await fetch(`/api/readings?sensorId=${e}`, {
-      method: 'GET'
-    })
+    const response = await fetch(`/api/readings?sensorId=${e}`)
 
     if (response.ok) {
       const result = await response.json()
-      setReadings(result.readings)
+
+      // todo: cambiar a 200
+      if (response.status !== 404) setReadings(result.readings)
+      else setReadings([])
+
       console.log(result)
     } else {
       console.log('Error')
@@ -107,10 +110,14 @@ const AddData = () => {
   const handleSubmit = async e => {
     e.preventDefault()
 
+    console.log('submitting')
+
     if (!fileCsv || !selectedSensor) {
       toast.error('Please fill all the fields')
       return
     }
+
+    console.log('fileCsv', fileCsv)
 
     const response = await fetch(`/api/readings?csv=true&sensorId=${selectedSensor}`, {
       method: 'POST',
@@ -119,6 +126,8 @@ const AddData = () => {
       },
       body: fileCsv
     })
+
+    console.log('res from handleSubmit', response)
 
     if (response.ok) {
       const result = await response.json()
@@ -130,6 +139,8 @@ const AddData = () => {
       console.log('Error')
     }
   }
+
+  console.log('file csv', fileCsv)
 
   const cleanValues = () => {
     setSelectedSensor('')
@@ -149,37 +160,37 @@ const AddData = () => {
           <CardContent>
             <Grid container spacing={3}>
               {/*<form onSubmit={handleSubmit}>*/}
-                <Grid item xs={12}>
-                  <FormControl fullWidth variant='outlined'>
-                    <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
-                    <Select
-                      labelId='select-sensor-label'
-                      id='select-sensor'
-                      label='Select Sensor'
-                      required
-                      value={selectedSensor}
-                      onChange={e => {
-                        setSelectedSensor(e.target.value), handleSensorSelection(e.target.value)
-                      }}
-                    >
-                      {sensors.map(sensor => {
-                        return <MenuItem value={sensor.id}>{sensor.type}</MenuItem>
-                      })}
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    name='upload-file'
-                    size='small'
-                    type='file'
-                    variant='outlined'
+              <Grid item xs={12}>
+                <FormControl fullWidth variant='outlined'>
+                  <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
+                  <Select
+                    labelId='select-sensor-label'
+                    id='select-sensor'
+                    label='Select Sensor'
                     required
-                    onChange={e => setFileCsv(e.target.value)}
-                  />
-                </Grid>
+                    value={selectedSensor}
+                    onChange={e => {
+                      setSelectedSensor(e.target.value), handleSensorSelection(e.target.value)
+                    }}
+                  >
+                    {sensors.map(sensor => {
+                      return <MenuItem value={sensor.id}>{sensor.type}</MenuItem>
+                    })}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name='upload-file'
+                  size='small'
+                  type='file'
+                  variant='outlined'
+                  required
+                  onChange={e => setFileCsv(e.target.value)}
+                />
+              </Grid>
               {/*</form>*/}
               <Divider />
             </Grid>

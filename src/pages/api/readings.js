@@ -8,6 +8,7 @@ export default async function handler(req, res) {
       // get all sensors readings
       const readings = await prisma.sensorReading.findMany({})
 
+      // todo: cambiar a 200 con arreglo vacio
       if (readings.length !== 0) {
         res.status(200).json({ message: 'Readings found', readings })
       } else {
@@ -36,6 +37,7 @@ export default async function handler(req, res) {
           sensorId: parseInt(req.query.sensorId)
         }
       })
+
       if (readings !== null) {
         res.status(200).json({ message: 'Readings found', readings })
       } else {
@@ -54,10 +56,10 @@ export default async function handler(req, res) {
       const csvFile = req.body
       const sensorId = parseInt(req.query.sensorId)
 
-      console.log()
-
       const csvJson = await csv().fromString(csvFile)
       const newReadings = []
+
+      console.log('/api/readings', csvJson)
 
       for (let i = 0; i < csvJson.length; i++) {
         const reading = csvJson[i]
@@ -66,9 +68,9 @@ export default async function handler(req, res) {
           where: {
             readingId: reading.id,
             sensorId: sensorId
-          },
+          }
         })
-  
+
         if (existingReading === null) {
           // create new record
           const newReading = await prisma.sensorReading.create({
@@ -77,7 +79,7 @@ export default async function handler(req, res) {
               readingValues: reading.value,
               readingTime: new Date(reading.date),
               sensorId: sensorId
-            },
+            }
           })
           newReadings.push(newReading)
         }
@@ -87,7 +89,7 @@ export default async function handler(req, res) {
       res.status(400).json({ message: 'CSV file or reading ID not found in request' })
     }
   }
-  
+
   if (req.method === 'DELETE') {
     //check if all param i set to true on request params and delete all readings
     if (req.query.all && req.query.all === 'true') {
