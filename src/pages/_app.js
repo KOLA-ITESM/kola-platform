@@ -2,6 +2,9 @@
 import Head from 'next/head'
 import { Router } from 'next/router'
 
+// ** Library Imports
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from "chart.js";
+
 // ** Loader Import
 import NProgress from 'nprogress'
 
@@ -29,6 +32,8 @@ import '../../styles/globals.css'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 const clientSideEmotionCache = createEmotionCache()
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement);
 
 // ** Pace Loader
 if (themeConfig.routingLoader) {
