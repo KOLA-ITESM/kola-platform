@@ -35,6 +35,8 @@ const Sensors = ({ sensors }) => {
                   <TableCell>ID</TableCell>
                   <TableCell>Type</TableCell>
                   <TableCell>Location</TableCell>
+                  <TableCell>Latitude</TableCell>
+                  <TableCell>Longitude</TableCell>
                   <TableCell>Status</TableCell>
                 </TableRow>
               </TableHead>
@@ -46,6 +48,8 @@ const Sensors = ({ sensors }) => {
                       <TableCell>{sensor.id}</TableCell>
                       <TableCell>{sensor.type}</TableCell>
                       <TableCell>{sensor.location}</TableCell>
+                      <TableCell>{sensor.latitude}</TableCell>
+                      <TableCell>{sensor.longitude}</TableCell>
                       <TableCell>
                         {sensor.status === 'active' ? (
                           <div className='flex items-center justify-center space-x-2'>
@@ -53,7 +57,10 @@ const Sensors = ({ sensors }) => {
                             <p className='text-emerald-500'>Active</p>
                           </div>
                         ) : (
-                          <span className='chip chip-danger'>Inactive</span>
+                          <div className='flex items-center justify-center space-x-2'>
+                            <div className='w-2 h-2 rounded-full bg-red-500 inline-block' />
+                            <p className='text-red-500'>Inactive</p>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>
@@ -80,7 +87,6 @@ const Sensors = ({ sensors }) => {
 
 export const getServerSideProps = async () => {
   const sensors = await prisma.sensor.findMany({})
-
   return {
     props: {
       sensors
