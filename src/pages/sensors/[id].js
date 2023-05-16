@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Line } from 'react-chartjs-2';
+import { Line, Scatter, Bar } from 'react-chartjs-2'
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 import { Typography } from '@mui/material'
 import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, TablePagination } from '@mui/material'
-
 
 import mapboxgl from 'mapbox-gl'
 import prisma from '../../../prisma'
@@ -14,48 +13,72 @@ import { parseCoordinate } from 'src/@core/utils/parse-coordinates'
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2cTJlMHlzY2UifQ.-0tFUeRnCr8jISRMn_CRvw'
 
 function formatReadingTime(readingTime) {
-  const date = new Date(readingTime);
+  const date = new Date(readingTime)
 
   // Format the time
-  const hoursUTC = date.getUTCHours();
-  const hours12 = (hoursUTC % 12) || 12;
-  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-  const amPm = hoursUTC < 12 ? 'AM' : 'PM';
-  const time = `${hours12}:${minutes} ${amPm}`;
+  const hoursUTC = date.getUTCHours()
+  const hours12 = hoursUTC % 12 || 12
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0')
+  const amPm = hoursUTC < 12 ? 'AM' : 'PM'
+  const time = `${hours12}:${minutes} ${amPm}`
 
   // Format the date
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const day = date.getUTCDate().toString().padStart(2, '0');
-  const year = date.getUTCFullYear();
-  const formattedDate = `${month}/${day}/${year}`;
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0')
+  const day = date.getUTCDate().toString().padStart(2, '0')
+  const year = date.getUTCFullYear()
+  const formattedDate = `${month}/${day}/${year}`
 
-  return `${time}, ${formattedDate}`;
+  return `${time}, ${formattedDate}`
 }
 
+const transformSensorReadings = sensorReadings => {
+  const labels = []
+  const data = []
 
-const transformSensorReadings = (sensorReadings) => {
-  const labels = [];
-  const data = [];
-
-  sensorReadings.forEach((reading) => {
-    labels.push(formatReadingTime(reading.readingTime));
-    data.push(parseFloat(reading.readingValues));
-  });
+  sensorReadings.forEach(reading => {
+    labels.push(formatReadingTime(reading.readingTime))
+    data.push(parseFloat(reading.readingValues))
+  })
 
   return {
     labels,
     datasets: [
       {
         fill: true,
-        label: "Sensor Readings",
+        label: 'Sensor Readings',
         data,
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-};
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }
+    ]
+  }
+}
+
+function convertData(inputArray) {
+  let readingsPerDay = {}
+
+  inputArray.forEach(reading => {
+    let day = reading.readingTime.split('T')[0] // extract day
+    readingsPerDay[day] = (readingsPerDay[day] || 0) + 1 // increment count
+  })
+
+  let days = Object.keys(readingsPerDay)
+  let counts = Object.values(readingsPerDay)
+
+  return {
+    labels: days,
+    datasets: [
+      {
+        label: 'Readings per day',
+        data: counts,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }
+    ]
+  }
+}
 
 const Sensor = ({ sensor, sensorReadings }) => {
   const mapContainer = useRef()
@@ -89,8 +112,6 @@ const Sensor = ({ sensor, sensorReadings }) => {
     }
   }, [])
 
-  console.log(sensorReadings)
-
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
@@ -101,8 +122,9 @@ const Sensor = ({ sensor, sensorReadings }) => {
       <Grid item xs={4}>
         <div ref={mapContainer} style={{ width: '100%', height: '300px' }} className='rounded-lg' />
       </Grid>
+
       <Grid item xs={8}>
-        <TableContainer style={{ backgroundColor: "white", borderRadius: "5px" }}>
+        <TableContainer style={{ backgroundColor: 'white', borderRadius: '5px' }}>
           <Table stickyHeader aria-label='sticky table'>
             <TableHead>
               <TableRow>
@@ -135,23 +157,51 @@ const Sensor = ({ sensor, sensorReadings }) => {
         />
       </Grid>
 
-      <Grid item xs={12} style={{
-        backgroundColor: "white",
-        padding: "1rem",
-        borderRadius: "10px",
-      }}>
-        {sensorReadings && <Line options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            title: {
-              display: true,
-              text: 'Chart.js Line Chart',
-            },
-          },
-        }} data={transformSensorReadings(sensorReadings)} />}
+      <Grid item xs={6}>
+        <div
+          style={{
+            backgroundColor: 'white',
+            padding: '1rem',
+            borderRadius: '10px'
+          }}
+        >
+          {sensorReadings && (
+            <Line
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top'
+                  },
+                  title: {
+                    display: true,
+                    text: 'Chart.js Line Chart'
+                  }
+                }
+              }}
+              data={transformSensorReadings(sensorReadings)}
+            />
+          )}
+        </div>
+      </Grid>
+
+      <Grid item xs={6}>
+        <div
+          style={{
+            backgroundColor: 'white',
+            padding: '1rem',
+            borderRadius: '10px'
+          }}
+        >
+          {sensorReadings && (
+            <Bar
+              options={{
+                responsive: true
+              }}
+              data={convertData(sensorReadings)}
+            />
+          )}
+        </div>
       </Grid>
     </Grid>
   )

@@ -3,7 +3,19 @@ import Head from 'next/head'
 import { Router } from 'next/router'
 
 // ** Library Imports
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from "chart.js";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  TimeScale,
+  TimeSeriesScale
+} from 'chart.js'
 
 // ** Loader Import
 import NProgress from 'nprogress'
@@ -26,6 +38,7 @@ import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
 
 // ** React Perfect Scrollbar Style
 import 'react-perfect-scrollbar/dist/css/styles.css'
+import 'chartjs-adapter-moment'
 
 // ** Global css styles
 import '../../styles/globals.css'
@@ -33,7 +46,18 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 const clientSideEmotionCache = createEmotionCache()
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement);
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  TimeScale,
+  TimeSeriesScale
+)
 
 // ** Pace Loader
 if (themeConfig.routingLoader) {
