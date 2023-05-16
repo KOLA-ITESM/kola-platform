@@ -46,12 +46,30 @@ const Sensor = ({ sensor, sensorReadings }) => {
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <Typography variant='h5'>{sensor.type}</Typography>
+        <Typography variant='h5'>
+          <div className='flex'>
+            {sensor.type} -
+            {sensor.status === 'active' ? (
+              <div className='flex items-center space-x-2 ml-2'>
+                <p className='text-emerald-500'>Active</p>
+                <div className='w-2 h-2 rounded-full bg-emerald-500 inline-block' />
+              </div>
+            ) : (
+              <div className='flex items-center space-x-2 ml-2'>
+                <p className='text-red-500'>Inactive</p>
+                <div className='w-2 h-2 rounded-full bg-red-500 inline-block' />
+              </div>
+            )}
+          </div>
+        </Typography>
         <Typography variant='body2'>{sensor.location}</Typography>
       </Grid>
 
       <Grid item xs={4}>
         <div ref={mapContainer} style={{ width: '100%', height: '300px' }} className='rounded-lg' />
+        <Typography variant='body2' align='center' marginTop={3}>
+          ({sensor.latitude}, {sensor.longitude})
+        </Typography>
       </Grid>
       <Grid item xs={8}>
         <TableContainer>
