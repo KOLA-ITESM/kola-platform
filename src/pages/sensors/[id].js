@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Line, Scatter, Bar } from 'react-chartjs-2'
+import { Line, Bar } from 'react-chartjs-2'
+import { getYear, getMonth, getDate } from 'date-fns'
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
-import { Typography } from '@mui/material'
+import { Typography, Select, MenuItem } from '@mui/material'
 import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, TablePagination } from '@mui/material'
 
 import mapboxgl from 'mapbox-gl'
@@ -31,13 +32,13 @@ function formatReadingTime(readingTime) {
   return `${time}, ${formattedDate}`
 }
 
-const transformSensorReadings = sensorReadings => {
+const transformForLineChart = groupedReadings => {
   const labels = []
   const data = []
 
-  sensorReadings.forEach(reading => {
-    labels.push(formatReadingTime(reading.readingTime))
-    data.push(parseFloat(reading.readingValues))
+  groupedReadings.forEach(reading => {
+    labels.push(reading.readingTime)
+    data.push(reading.readingValues)
   })
 
   return {
@@ -55,23 +56,21 @@ const transformSensorReadings = sensorReadings => {
   }
 }
 
-function convertData(inputArray) {
-  let readingsPerDay = {}
+const transformForBarChart = groupedReadings => {
+  const labels = []
+  const data = []
 
-  inputArray.forEach(reading => {
-    let day = reading.readingTime.split('T')[0] // extract day
-    readingsPerDay[day] = (readingsPerDay[day] || 0) + 1 // increment count
+  groupedReadings.forEach(reading => {
+    labels.push(reading.readingTime)
+    data.push(reading.count)
   })
 
-  let days = Object.keys(readingsPerDay)
-  let counts = Object.values(readingsPerDay)
-
   return {
-    labels: days,
+    labels,
     datasets: [
       {
-        label: 'Readings per day',
-        data: counts,
+        label: 'Readings per interval',
+        data,
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
         borderWidth: 1
@@ -86,6 +85,12 @@ const Sensor = ({ sensor, sensorReadings }) => {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
+  const [lineChartState, setLineChartState] = useState(transformForLineChart(sensorReadings))
+  const [barChartState, setBarChartState] = useState(transformForBarChart(sensorReadings))
+
+  const [lineChartInterval, setLineChartInterval] = useState('daily')
+  const [barChartInterval, setBarChartInterval] = useState('daily')
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage)
   }
@@ -94,6 +99,57 @@ const Sensor = ({ sensor, sensorReadings }) => {
     setRowsPerPage(+event.target.value)
     setPage(0)
   }
+
+  function groupByInterval(readings, interval) {
+    let groupedReadings = {}
+
+    readings.forEach(reading => {
+      let readingDate = new Date(reading.readingTime)
+      let groupKey
+
+      switch (interval) {
+        case 'daily':
+          groupKey = readingDate.toISOString().split('T')[0] // YYYY-MM-DD format
+          break
+        case 'weekly':
+          let year = getYear(readingDate)
+          let week = Math.ceil(
+            ((readingDate - new Date(year, 0, 1)) / 86400000 + new Date(year, 0, 1).getDay() + 1) / 7
+          )
+          groupKey = `${year}-W${week}` // Format: YYYY-WW
+
+          break
+        case 'monthly':
+          groupKey = `${getYear(readingDate)}-${getMonth(readingDate) + 1}` // YYYY-MM format
+          break
+        case 'yearly':
+          groupKey = getYear(readingDate).toString() // YYYY format
+          break
+      }
+
+      if (!groupedReadings[groupKey]) {
+        groupedReadings[groupKey] = { total: 0, count: 0, average: 0 }
+      }
+
+      groupedReadings[groupKey].total += parseFloat(reading.readingValues)
+      groupedReadings[groupKey].count += 1
+      groupedReadings[groupKey].average = groupedReadings[groupKey].total / groupedReadings[groupKey].count
+    })
+
+    return Object.entries(groupedReadings).map(([groupKey, { average, count }]) => ({
+      readingTime: groupKey,
+      readingValues: average,
+      count: count
+    }))
+  }
+
+  useEffect(() => {
+    setLineChartState(transformForLineChart(groupByInterval(sensorReadings, lineChartInterval)))
+  }, [lineChartInterval])
+
+  useEffect(() => {
+    setBarChartState(transformForBarChart(groupByInterval(sensorReadings, barChartInterval)))
+  }, [barChartInterval])
 
   useEffect(() => {
     const sensorCoordinates = [parseCoordinate(sensor.longitude), parseCoordinate(sensor.latitude)]
@@ -146,7 +202,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
           <Table stickyHeader aria-label='sticky table'>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
+                <TableCell>#</TableCell>
                 <TableCell>Reading</TableCell>
                 <TableCell>Date / Time</TableCell>
               </TableRow>
@@ -183,6 +239,13 @@ const Sensor = ({ sensor, sensorReadings }) => {
             borderRadius: '10px'
           }}
         >
+          <Select value={lineChartInterval} onChange={event => setLineChartInterval(event.target.value)}>
+            <MenuItem value='daily'>Daily</MenuItem>
+            <MenuItem value='weekly'>Weekly</MenuItem>
+            <MenuItem value='monthly'>Monthly</MenuItem>
+            <MenuItem value='yearly'>Yearly</MenuItem>
+          </Select>
+
           {sensorReadings && (
             <Line
               options={{
@@ -197,7 +260,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
                   }
                 }
               }}
-              data={transformSensorReadings(sensorReadings)}
+              data={lineChartState}
             />
           )}
         </div>
@@ -211,12 +274,19 @@ const Sensor = ({ sensor, sensorReadings }) => {
             borderRadius: '10px'
           }}
         >
+          <Select value={barChartInterval} onChange={event => setBarChartInterval(event.target.value)}>
+            <MenuItem value='daily'>Daily</MenuItem>
+            <MenuItem value='weekly'>Weekly</MenuItem>
+            <MenuItem value='monthly'>Monthly</MenuItem>
+            <MenuItem value='yearly'>Yearly</MenuItem>
+          </Select>
+
           {sensorReadings && (
             <Bar
               options={{
                 responsive: true
               }}
-              data={convertData(sensorReadings)}
+              data={barChartState}
             />
           )}
         </div>
@@ -241,6 +311,7 @@ export const getServerSideProps = async query => {
 
   const serializedSensorReadings = sensorReadings.map(reading => ({
     ...reading,
+    readingValues: parseFloat(reading.readingValues.replace(',', '.')),
     readingTime: reading.readingTime.toISOString()
   }))
 
