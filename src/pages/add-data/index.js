@@ -94,6 +94,8 @@ const AddData = () => {
       body: fileCsv
     })
 
+    console.log('response', response)
+
     if (response.ok) {
       const result = await response.json()
       toast.success('Readings created successfully')

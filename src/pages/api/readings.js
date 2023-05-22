@@ -79,6 +79,7 @@ export default async function handler(req, res) {
               sensorId: sensorId
             }
           })
+
           newReadings.push(newReading)
         }
       }
