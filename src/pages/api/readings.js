@@ -59,6 +59,8 @@ export default async function handler(req, res) {
       const csvJson = await csv().fromString(csvFile)
       const newReadings = []
 
+      console.log('readings', csvJson)
+
       for (let i = 0; i < csvJson.length; i++) {
         const reading = csvJson[i]
         // check if the read already exists

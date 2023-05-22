@@ -135,7 +135,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
       </Grid>
 
       <Grid item xs={4}>
-        <div ref={mapContainer} style={{ width: '100%', height: '300px' }} className='rounded-lg' />
+        <div ref={mapContainer} style={{ width: '100%', height: '90%' }} className='rounded-lg' />
         <Typography variant='body2' align='center' marginTop={3}>
           ({sensor.latitude}, {sensor.longitude})
         </Typography>
@@ -153,7 +153,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
             </TableHead>
 
             <TableBody>
-              {sensorReadings.map(sensorReading => (
+              {sensorReadings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(sensorReading => (
                 <TableRow hover role='checkbox' tabIndex={-1} key={sensorReading.id} className='cursor-pointer'>
                   <TableCell>{sensorReading.id}</TableCell>
                   <TableCell>{sensorReading.readingValues}</TableCell>
