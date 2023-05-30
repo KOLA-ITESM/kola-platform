@@ -4,12 +4,13 @@ import { getYear, getMonth, getDate } from 'date-fns'
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
-import { Typography, Select, MenuItem } from '@mui/material'
+import { Typography, Select, MenuItem, Card, CardContent, CardHeader } from '@mui/material'
 import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, TablePagination } from '@mui/material'
 
 import mapboxgl from 'mapbox-gl'
 import prisma from '../../../prisma'
 import { parseCoordinate } from 'src/@core/utils/parse-coordinates'
+import ImageSlider from './ImageSlider'
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2cTJlMHlzY2UifQ.-0tFUeRnCr8jISRMn_CRvw'
 
@@ -80,6 +81,12 @@ const transformForBarChart = groupedReadings => {
 }
 
 const Sensor = ({ sensor, sensorReadings }) => {
+  const imageDict = {
+    1622295000: 'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d',
+    1622298600: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713',
+    1622302200: 'https://images.unsplash.com/photo-1533134486753-c833f0ed4866'
+  }
+
   const mapContainer = useRef()
 
   const [page, setPage] = useState(0)
@@ -196,11 +203,11 @@ const Sensor = ({ sensor, sensorReadings }) => {
           ({sensor.latitude}, {sensor.longitude})
         </Typography>
       </Grid>
-
       <Grid item xs={8}>
         <TableContainer style={{ backgroundColor: 'white', borderRadius: '5px' }}>
           <Table stickyHeader aria-label='sticky table'>
             <TableHead>
+      
               <TableRow>
                 <TableCell>#</TableCell>
                 <TableCell>Reading</TableCell>
@@ -290,6 +297,17 @@ const Sensor = ({ sensor, sensorReadings }) => {
             />
           )}
         </div>
+      </Grid>
+      {/* Render this card based on the sensor type */}
+      <Grid item xs={12}>
+        <Card>
+          <CardHeader title='Image View' subheader='Images captured by the sensor' />
+          <CardContent sx={{ p: 5 }}>
+              <div className='flex justify-center items-center'>
+              <ImageSlider images={imageDict} />
+            </div>
+          </CardContent>
+        </Card>
       </Grid>
     </Grid>
   )
