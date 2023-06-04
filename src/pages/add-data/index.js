@@ -52,7 +52,7 @@ const AddData = () => {
         const result = await response.json()
         const sensorIds = result.sensors.map(sensor => ({
           id: sensor.id,
-          type: sensor.type
+          name: sensor.name
         }))
         setSensors(sensorIds)
       } else {
@@ -139,7 +139,7 @@ const AddData = () => {
                     }}
                   >
                     {sensors.map(sensor => {
-                      return <MenuItem value={sensor.id}>{sensor.type}</MenuItem>
+                      return <MenuItem value={sensor.id}>{sensor.name}</MenuItem>
                     })}
                   </Select>
                 </FormControl>
