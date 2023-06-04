@@ -33,7 +33,7 @@ const Sensors = ({ sensors }) => {
               <TableHead>
                 <TableRow>
                   <TableCell>ID</TableCell>
-                  <TableCell>Type</TableCell>
+                  <TableCell>Name</TableCell>
                   <TableCell>Location</TableCell>
                   <TableCell>Latitude</TableCell>
                   <TableCell>Longitude</TableCell>
@@ -46,7 +46,7 @@ const Sensors = ({ sensors }) => {
                   <Link key={sensor.id} href={`/sensors/${sensor.id}`}>
                     <TableRow hover role='checkbox' tabIndex={-1} key={sensor.id} className='cursor-pointer'>
                       <TableCell>{sensor.id}</TableCell>
-                      <TableCell>{sensor.type}</TableCell>
+                      <TableCell>{sensor.name}</TableCell>
                       <TableCell>{sensor.location}</TableCell>
                       <TableCell>{sensor.latitude}</TableCell>
                       <TableCell>{sensor.longitude}</TableCell>

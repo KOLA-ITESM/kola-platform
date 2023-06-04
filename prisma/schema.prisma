@@ -9,7 +9,8 @@ datasource db {
 
 model Sensor {
   id        Int             @id @default(autoincrement())
-  type      String
+  name      String
+  type      SensorType      @default(TEXT)
   location  String
   longitude String
   latitude  String
@@ -24,4 +25,10 @@ model SensorReading {
   readingValues String
   readingTime   DateTime
   sensor        Sensor   @relation(fields: [sensorId], references: [id])
+}
+
+enum SensorType {
+  TEXT
+  AUDIO
+  IMAGE
 }
