@@ -99,7 +99,7 @@ const AddMultimedia = () => {
 
   const handleSubmit = async e => {
     e.preventDefault()
-    
+
     const promises = []
     try {
       files.forEach(file => {
@@ -110,22 +110,33 @@ const AddMultimedia = () => {
         }
         promises.push(s3.upload(params).promise())
       })
+
       const results = await Promise.all(promises)
-      console.log(results)
+      const resultUrls = results.map(result => result.Location)
+      console.log('resultUrls', resultUrls)
+
+      // upload each image in resultUrls array to database through api
+      for (let imgUrl of resultUrls) {
+        const response = await fetch(`/api/readings?mediaUrl=true&sensorId=${selectedSensor}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            mediaUrl: imgUrl
+          })
+        })
+      }
+
+      cleanValues()
+      toast.success('Media files uploaded successfully!')
     } catch (error) {
+      toast.error('Error uploading media files, please try again')
       console.log(error)
     }
-
-    if (response.ok) {
-      const result = await response.json()
-      toast.success('Readings created successfully')
-      console.log(result)
-      cleanValues()
-    } else {
-      toast.error('Error creating readings')
-      console.log('Error')
-    }
   }
+
+  console.log('selectedSensor', selectedSensor)
 
   const cleanValues = () => {
     setSelectedSensor('')
