@@ -19,6 +19,7 @@ import {
   TableBody,
   TablePagination
 } from '@mui/material'
+import { SensorType } from '@prisma/client'
 
 import { useEffect, useState } from 'react'
 
@@ -50,10 +51,12 @@ const AddData = () => {
 
       if (response.ok) {
         const result = await response.json()
-        const sensorIds = result.sensors.map(sensor => ({
-          id: sensor.id,
-          name: sensor.name
-        }))
+        const sensorIds = result.sensors
+          .filter(sensor => sensor.type === SensorType.TEXT)
+          .map(sensor => ({
+            id: sensor.id,
+            name: sensor.name
+          }))
         setSensors(sensorIds)
       } else {
         console.log('Error')

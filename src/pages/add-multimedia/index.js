@@ -29,6 +29,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { DropzoneArea } from 'material-ui-dropzone'
 
 import AWS from 'aws-sdk'
+import { SensorType } from '@prisma/client'
 
 const AddMultimedia = () => {
   const [selectedSensor, setSelectedSensor] = useState('')
@@ -71,15 +72,19 @@ const AddMultimedia = () => {
 
       if (response.ok) {
         const result = await response.json()
-        const sensorIds = result.sensors.map(sensor => ({
-          id: sensor.id,
-          name: sensor.name
-        }))
+
+        const sensorIds = result.sensors
+          .filter(sensor => sensor.type === SensorType.AUDIO || sensor.type === SensorType.IMAGE)
+          .map(sensor => ({
+            id: sensor.id,
+            name: sensor.name
+          }))
         setSensors(sensorIds)
       } else {
         console.log('Error')
       }
     }
+
     fetchData()
   }, [])
 
