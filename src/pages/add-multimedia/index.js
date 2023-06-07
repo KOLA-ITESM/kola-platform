@@ -29,7 +29,6 @@ import 'react-toastify/dist/ReactToastify.css'
 import { DropzoneArea } from 'material-ui-dropzone'
 
 import AWS from 'aws-sdk'
-import { tr } from 'date-fns/locale'
 
 const AddMultimedia = () => {
   const [selectedSensor, setSelectedSensor] = useState('')
@@ -116,12 +115,8 @@ const AddMultimedia = () => {
 
       const results = await Promise.all(promises)
 
-      console.log(results)
-
       // upload each image in resultUrls array to database through api
       for (let result of results) {
-        console.log(fileReadingDates, result.Location)
-
         const response = await fetch(`/api/readings?mediaUrl=true&sensorId=${selectedSensor}`, {
           method: 'POST',
           headers: {
@@ -144,10 +139,10 @@ const AddMultimedia = () => {
     }
   }
 
-  console.log('files', files, fileReadingDates)
-
   const cleanValues = () => {
     setSelectedSensor('')
+    setFiles([])
+    setFileReadingDates({})
   }
 
   return (
@@ -195,6 +190,7 @@ const AddMultimedia = () => {
                   maxFileSize={5000000}
                   showPreviews={true}
                   showPreviewsInDropzone={false}
+                  clearOnUnmount={true}
                 />
               </Grid>
 
