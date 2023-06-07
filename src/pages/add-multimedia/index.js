@@ -251,8 +251,10 @@ const AddMultimedia = () => {
                   {readings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(reading => (
                     <TableRow hover role='checkbox' tabIndex={-1} key={reading.id} className='cursor-pointer'>
                       <TableCell>{reading.readingId}</TableCell>
-                      <TableCell>{reading.readingTime}</TableCell>
-                      <TableCell>{reading.readingValues}</TableCell>
+                      <TableCell>{new Date(reading.readingTime).toUTCString()}</TableCell>
+                      <TableCell>
+                        <img src={reading.readingValues} className='w-10 h-10 rounded-md' />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -192,7 +192,7 @@ const AddData = () => {
                   {readings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(reading => (
                     <TableRow hover role='checkbox' tabIndex={-1} key={reading.id} className='cursor-pointer'>
                       <TableCell>{reading.readingId}</TableCell>
-                      <TableCell>{reading.readingTime}</TableCell>
+                      <TableCell>{new Date(reading.readingTime).toUTCString()}</TableCell>
                       <TableCell>{reading.readingValues}</TableCell>
                     </TableRow>
                   ))}
