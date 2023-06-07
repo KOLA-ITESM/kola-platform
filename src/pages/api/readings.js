@@ -84,8 +84,26 @@ export default async function handler(req, res) {
         }
       }
       res.status(200).json({ message: 'Readings created', newReadings })
+    } else if (req.query.mediaUrl && req.query.mediaUrl === 'true' && req.query.sensorId) {
+      const mediaUrl = req.body.mediaUrl
+      const readingDate = req.body.readingDate
+      const sensorId = parseInt(req.query.sensorId)
+
+      console.log('mediaUrl', mediaUrl)
+      console.log('readingDate', readingDate)
+
+      const newReading = await prisma.sensorReading.create({
+        data: {
+          readingId: sensorId + '-' + new Date().toISOString().replace(/[:.-]/g, ''),
+          readingValues: mediaUrl,
+          readingTime: new Date(readingDate),
+          sensorId: sensorId
+        }
+      })
+
+      res.status(200).json({ message: 'Reading created', newReading })
     } else {
-      res.status(400).json({ message: 'CSV file or reading ID not found in request' })
+      res.status(400).json({ message: 'CSV file, media file or reading ID not found in request' })
     }
   }
 

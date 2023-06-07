@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Typography,
   Card,
   CardContent,
   CardHeader,
@@ -19,20 +20,40 @@ import {
   TableBody,
   TablePagination
 } from '@mui/material'
-import { SensorType } from '@prisma/client'
 
 import { useEffect, useState } from 'react'
 
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-const AddData = () => {
-  const [fileCsv, setFileCsv] = useState(null)
+import { DropzoneArea } from 'material-ui-dropzone'
+
+import AWS from 'aws-sdk'
+import { SensorType } from '@prisma/client'
+
+const AddMultimedia = () => {
   const [selectedSensor, setSelectedSensor] = useState('')
   const [sensors, setSensors] = useState([])
   const [readings, setReadings] = useState([])
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [files, setFiles] = useState([])
+
+  const [fileReadingDates, setFileReadingDates] = useState({})
+
+  const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET
+  const REGION = process.env.NEXT_PUBLIC_REGION
+  const ACCESS_KEY = process.env.NEXT_PUBLIC_ACCESS_KEY
+  const SECRET_ACCESS_KEY = process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY
+
+  const s3 = new AWS.S3({
+    accessKeyId: ACCESS_KEY,
+    secretAccessKey: SECRET_ACCESS_KEY,
+    region: REGION,
+    params: { Bucket: S3_BUCKET }
+  })
+
+  console.log({ s3 })
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage)
@@ -51,8 +72,9 @@ const AddData = () => {
 
       if (response.ok) {
         const result = await response.json()
+
         const sensorIds = result.sensors
-          .filter(sensor => sensor.type === SensorType.TEXT)
+          .filter(sensor => sensor.type === SensorType.AUDIO || sensor.type === SensorType.IMAGE)
           .map(sensor => ({
             id: sensor.id,
             name: sensor.name
@@ -62,6 +84,7 @@ const AddData = () => {
         console.log('Error')
       }
     }
+
     fetchData()
   }, [])
 
@@ -84,35 +107,47 @@ const AddData = () => {
   const handleSubmit = async e => {
     e.preventDefault()
 
-    if (!fileCsv || !selectedSensor) {
-      toast.error('Please fill all the fields')
-      return
-    }
+    const promises = []
+    try {
+      files.forEach(file => {
+        const params = {
+          Bucket: S3_BUCKET,
+          Key: file.name,
+          Body: file
+        }
+        promises.push(s3.upload(params).promise())
+      })
 
-    const response = await fetch(`/api/readings?csv=true&sensorId=${selectedSensor}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/csv'
-      },
-      body: fileCsv
-    })
+      const results = await Promise.all(promises)
 
-    console.log('response', response)
+      // upload each image in resultUrls array to database through api
+      for (let result of results) {
+        const response = await fetch(`/api/readings?mediaUrl=true&sensorId=${selectedSensor}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            mediaUrl: result.Location,
+            readingDate: fileReadingDates[result.Key]
+          })
+        })
 
-    if (response.ok) {
-      const result = await response.json()
-      toast.success('Readings created successfully')
-      console.log(result)
+        if (!response.ok) throw new Error('Error uploading media files, please try again')
+      }
+
       cleanValues()
-    } else {
-      toast.error('Error creating readings')
-      console.log('Error')
+      toast.success('Media files uploaded successfully!')
+    } catch (error) {
+      toast.error('Error uploading media files, please try again')
+      console.log(error)
     }
   }
 
   const cleanValues = () => {
     setSelectedSensor('')
-    setFileCsv(null)
+    setFiles([])
+    setFileReadingDates({})
   }
 
   return (
@@ -120,17 +155,16 @@ const AddData = () => {
       <Grid item xs={6}>
         <Card>
           <CardHeader
-            title='Add data'
+            title='Add multimedia'
             titleTypographyProps={{ variant: 'h6' }}
-            subheader='Select the sensor you want to add data to'
+            subheader='Select the sensor you want to add multimedia to'
           />
 
           <CardContent>
             <Grid container spacing={3}>
-              {/*<form onSubmit={handleSubmit}>*/}
               <Grid item xs={12}>
                 <FormControl fullWidth variant='outlined'>
-                  <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
+                  <InputLabel id='select-sensor-label'>Select sensor</InputLabel>
                   <Select
                     labelId='select-sensor-label'
                     id='select-sensor'
@@ -142,25 +176,52 @@ const AddData = () => {
                     }}
                   >
                     {sensors.map(sensor => {
-                      return <MenuItem value={sensor.id}>{sensor.name}</MenuItem>
+                      return (
+                        <MenuItem key={sensor.id} value={sensor.id}>
+                          {sensor.name}
+                        </MenuItem>
+                      )
                     })}
                   </Select>
                 </FormControl>
               </Grid>
 
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name='upload-file'
-                  size='small'
-                  type='file'
-                  variant='outlined'
-                  required
-                  onChange={e => setFileCsv(e.target.files[0])}
+                <DropzoneArea
+                  acceptedFiles={['image/*', 'audio/*']}
+                  dropzoneText='Drag and drop an image or audio file here or click'
+                  onChange={files => setFiles(files)}
+                  filesLimit={10}
+                  maxFileSize={5000000}
+                  showPreviews={true}
+                  showPreviewsInDropzone={false}
+                  clearOnUnmount={true}
                 />
               </Grid>
-              {/*</form>*/}
+
               <Divider />
+
+              {files.length > 0 && (
+                <Grid item xs={12}>
+                  <Typography variant='h6' gutterBottom>
+                    Specify date data for each file
+                  </Typography>
+
+                  {files.map(file => (
+                    <div key={file.name} className='space-y-2 mb-2'>
+                      <p>File: {file.name}</p>
+                      <TextField
+                        id='outlined-basic'
+                        variant='outlined'
+                        type='datetime-local'
+                        onChange={e => {
+                          setFileReadingDates(prevState => ({ ...prevState, [file.name]: e.target.value }))
+                        }}
+                      />
+                    </div>
+                  ))}
+                </Grid>
+              )}
             </Grid>
           </CardContent>
           <Divider />
@@ -172,7 +233,7 @@ const AddData = () => {
             }}
           >
             <Button color='primary' variant='contained' onClick={handleSubmit}>
-              Add Data
+              Upload data
             </Button>
           </Box>
         </Card>
@@ -196,7 +257,9 @@ const AddData = () => {
                     <TableRow hover role='checkbox' tabIndex={-1} key={reading.id} className='cursor-pointer'>
                       <TableCell>{reading.readingId}</TableCell>
                       <TableCell>{new Date(reading.readingTime).toUTCString()}</TableCell>
-                      <TableCell>{reading.readingValues}</TableCell>
+                      <TableCell>
+                        <img src={reading.readingValues} className='w-10 h-10 rounded-md' />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -219,4 +282,4 @@ const AddData = () => {
   )
 }
 
-export default AddData
+export default AddMultimedia
