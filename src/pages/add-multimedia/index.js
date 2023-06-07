@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Typography,
   Card,
   CardContent,
   CardHeader,
@@ -37,6 +38,8 @@ const AddMultimedia = () => {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [files, setFiles] = useState([])
+
+  const [fileReadingDates, setFileReadingDates] = useState({})
 
   const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET
   const REGION = process.env.NEXT_PUBLIC_REGION
@@ -112,20 +115,25 @@ const AddMultimedia = () => {
       })
 
       const results = await Promise.all(promises)
-      const resultUrls = results.map(result => result.Location)
-      console.log('resultUrls', resultUrls)
+
+      console.log(results)
 
       // upload each image in resultUrls array to database through api
-      for (let imgUrl of resultUrls) {
+      for (let result of results) {
+        console.log(fileReadingDates, result.Location)
+
         const response = await fetch(`/api/readings?mediaUrl=true&sensorId=${selectedSensor}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            mediaUrl: imgUrl
+            mediaUrl: result.Location,
+            readingDate: fileReadingDates[result.Key]
           })
         })
+
+        if (!response.ok) throw new Error('Error uploading media files, please try again')
       }
 
       cleanValues()
@@ -136,7 +144,7 @@ const AddMultimedia = () => {
     }
   }
 
-  console.log('selectedSensor', selectedSensor)
+  console.log('files', files, fileReadingDates)
 
   const cleanValues = () => {
     setSelectedSensor('')
@@ -154,10 +162,9 @@ const AddMultimedia = () => {
 
           <CardContent>
             <Grid container spacing={3}>
-              {/*<form onSubmit={handleSubmit}>*/}
               <Grid item xs={12}>
                 <FormControl fullWidth variant='outlined'>
-                  <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
+                  <InputLabel id='select-sensor-label'>Select sensor</InputLabel>
                   <Select
                     labelId='select-sensor-label'
                     id='select-sensor'
@@ -188,11 +195,32 @@ const AddMultimedia = () => {
                   maxFileSize={5000000}
                   showPreviews={true}
                   showPreviewsInDropzone={false}
-                  showFileNamesInPreview={true}
                 />
               </Grid>
-              {/*</form>*/}
+
               <Divider />
+
+              {files.length > 0 && (
+                <Grid item xs={12}>
+                  <Typography variant='h6' gutterBottom>
+                    Specify date data for each file
+                  </Typography>
+
+                  {files.map(file => (
+                    <div key={file.name} className='space-y-2 mb-2'>
+                      <p>File: {file.name}</p>
+                      <TextField
+                        id='outlined-basic'
+                        variant='outlined'
+                        type='datetime-local'
+                        onChange={e => {
+                          setFileReadingDates(prevState => ({ ...prevState, [file.name]: e.target.value }))
+                        }}
+                      />
+                    </div>
+                  ))}
+                </Grid>
+              )}
             </Grid>
           </CardContent>
           <Divider />
@@ -204,7 +232,7 @@ const AddMultimedia = () => {
             }}
           >
             <Button color='primary' variant='contained' onClick={handleSubmit}>
-              Add Data
+              Upload data
             </Button>
           </Box>
         </Card>
