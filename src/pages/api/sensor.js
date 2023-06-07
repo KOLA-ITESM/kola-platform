@@ -51,11 +51,12 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     // check if post request is for csv file or not
     if (req.query.csv && req.query.csv === 'false') {
-      const { type, location, longitude, latitude } = req.body
+      const { name, type, location, longitude, latitude } = req.body
       const newSensors = []
 
       const newSensor = await prisma.sensor.create({
         data: {
+          name,
           type,
           location,
           longitude,
@@ -66,6 +67,7 @@ export default async function handler(req, res) {
       newSensors.push(newSensor)
       res.status(200).json({ message: 'Sensor created', newSensors })
     } else if (req.query.csv && req.query.csv === 'true') {
+      const csvFile = req.body
       const csvJson = await csv().fromString(cleanRawCsv(csvFile))
       const newSensors = []
 
@@ -74,7 +76,7 @@ export default async function handler(req, res) {
 
         const newSensor = await prisma.sensor.create({
           data: {
-            type: sensor.name,
+            name: sensor.name,
             location: sensor.description,
             longitude: sensor.longitude,
             latitude: sensor.latitude,

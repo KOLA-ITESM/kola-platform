@@ -27,6 +27,8 @@ const AddSensors = () => {
   const mapContainer = useRef()
   const [map, setMap] = useState(null)
   const [marker, setMarker] = useState(null)
+
+  const [sensorName, setSensorName] = useState('')
   const [latitude, setLatitude] = useState('')
   const [longitude, setLongitude] = useState('')
   const [sensors, setSensors] = useState('')
@@ -57,26 +59,28 @@ const AddSensors = () => {
   const handleLongitudeChange = e => {
     setLongitude(e.target.value)
   }
-  
+
   const handleLatitudeChange = e => {
     setLatitude(e.target.value)
   }
-  
 
   const handleSubmit = async e => {
     e.preventDefault()
 
-    if (!sensors || !latitude || !longitude || !location || !sensorType) {
+    if (!sensors || !sensorName || !latitude || !longitude || !location || !sensorType) {
       toast.error('Please fill all the fields')
       return
     }
 
     const data = {
+      name: sensorName,
       type: sensorType,
       location: location,
       latitude: latitude,
       longitude: longitude
     }
+
+    console.log(data)
 
     const response = await fetch('/api/sensor?csv=false', {
       method: 'POST',
@@ -140,6 +144,17 @@ const AddSensors = () => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
+                  label='Sensor name'
+                  name='name'
+                  required
+                  variant='outlined'
+                  value={sensorName}
+                  onChange={e => setSensorName(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
                   label='Location Description'
                   name='location'
                   required
@@ -161,9 +176,9 @@ const AddSensors = () => {
                     value={sensorType}
                     onChange={e => setSensorType(e.target.value)}
                   >
-                    <MenuItem value='Number'>Value (int , float)</MenuItem>
-                    <MenuItem value='Photo'>Photo</MenuItem>
-                    <MenuItem value='Audio'>Audio</MenuItem>
+                    <MenuItem value='TEXT'>Value (int , float)</MenuItem>
+                    <MenuItem value='IMAGE'>Photo</MenuItem>
+                    <MenuItem value='AUDIO'>Audio</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -177,11 +192,7 @@ const AddSensors = () => {
               p: 2
             }}
           >
-            <Button 
-              color='primary' 
-              variant='contained' 
-              onClick={handleSubmit}
-            >
+            <Button color='primary' variant='contained' onClick={handleSubmit}>
               Add Data
             </Button>
             <ToastContainer />

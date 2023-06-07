@@ -12,6 +12,7 @@ import AlertCircleOutline from 'mdi-material-ui/AlertCircleOutline'
 import GoogleCirclesExtended from 'mdi-material-ui/GoogleCirclesExtended'
 import AccessPointPlus from 'mdi-material-ui/AccessPointPlus'
 import DatabasePlusOutline from 'mdi-material-ui/DatabasePlusOutline'
+import FilePlus  from 'mdi-material-ui/FilePlus'
 
 const navigation = () => {
   return [
@@ -37,7 +38,13 @@ const navigation = () => {
       title: 'Add Data',
       icon: DatabasePlusOutline,
       path: '/add-data'
+    },
+    {
+      title: 'Add Multimedia',
+      icon: FilePlus,
+      path: '/add-multimedia'
     }
+
 
     // {
     //   title: 'Account Settings',

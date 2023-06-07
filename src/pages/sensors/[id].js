@@ -180,7 +180,7 @@ const Sensor = ({ sensor, sensorReadings }) => {
       <Grid item xs={12}>
         <Typography variant='h5'>
           <div className='flex'>
-            {sensor.type} -
+            {sensor.name} -
             {sensor.status === 'active' ? (
               <div className='flex items-center space-x-2 ml-2'>
                 <p className='text-emerald-500'>Active</p>
