@@ -258,7 +258,11 @@ const AddMultimedia = () => {
                       <TableCell>{reading.readingId}</TableCell>
                       <TableCell>{new Date(reading.readingTime).toUTCString()}</TableCell>
                       <TableCell>
-                        <img src={reading.readingValues} className='w-10 h-10 rounded-md' />
+                        {reading.readingValues.includes('wav') || reading.readingValues.includes('mp3') ? (
+                          <audio controls src={reading.readingValues} />
+                        ) : (
+                          <img src={reading.readingValues} className='w-10 h-10 rounded-md' />
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

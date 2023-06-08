@@ -1,6 +1,7 @@
+import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { Line, Bar } from 'react-chartjs-2'
-import { getYear, getMonth, getDate } from 'date-fns'
+import { getYear, getMonth } from 'date-fns'
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
@@ -181,8 +182,6 @@ const Sensor = ({ sensor, sensorReadings }) => {
     }
   }, [])
 
-  console.log(sensorReadings)
-
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
@@ -228,10 +227,12 @@ const Sensor = ({ sensor, sensorReadings }) => {
                 <TableRow hover role='checkbox' tabIndex={-1} key={sensorReading.id} className='cursor-pointer'>
                   <TableCell>{sensorReading.id}</TableCell>
                   <TableCell>
-                    {sensor.type === 'TEXT' || sensor.type === 'AUDIO' ? (
+                    {sensor.type === 'TEXT' ? (
                       sensorReading.readingValues
-                    ) : (
+                    ) : sensor.type === 'IMAGE' ? (
                       <img src={sensorReading.readingValues} className='w-10 h-10 rounded-md' />
+                    ) : (
+                      <audio controls src={sensorReading.readingValues} />
                     )}
                   </TableCell>
                   <TableCell>{formatReadingTime(sensorReading.readingTime)}</TableCell>
