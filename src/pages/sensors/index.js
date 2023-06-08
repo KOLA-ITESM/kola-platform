@@ -9,6 +9,17 @@ import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Table
 import prisma from '../../../prisma'
 import { useState } from 'react'
 
+const getEmojiFromType = type => {
+  switch (type) {
+    case 'AUDIO':
+      return '🔊'
+    case 'IMAGE':
+      return '📷'
+    default:
+      return '📝'
+  }
+}
+
 const Sensors = ({ sensors }) => {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -34,6 +45,7 @@ const Sensors = ({ sensors }) => {
                 <TableRow>
                   <TableCell>ID</TableCell>
                   <TableCell>Name</TableCell>
+                  <TableCell>Type</TableCell>
                   <TableCell>Location</TableCell>
                   <TableCell>Latitude</TableCell>
                   <TableCell>Longitude</TableCell>
@@ -47,6 +59,7 @@ const Sensors = ({ sensors }) => {
                     <TableRow hover role='checkbox' tabIndex={-1} key={sensor.id} className='cursor-pointer'>
                       <TableCell>{sensor.id}</TableCell>
                       <TableCell>{sensor.name}</TableCell>
+                      <TableCell>{getEmojiFromType(sensor.type)}</TableCell>
                       <TableCell>{sensor.location}</TableCell>
                       <TableCell>{sensor.latitude}</TableCell>
                       <TableCell>{sensor.longitude}</TableCell>

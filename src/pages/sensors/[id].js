@@ -87,6 +87,8 @@ const Sensor = ({ sensor, sensorReadings }) => {
     1622302200: 'https://images.unsplash.com/photo-1533134486753-c833f0ed4866'
   }
 
+  console.log(sensor?.type)
+
   const mapContainer = useRef()
 
   const [page, setPage] = useState(0)
@@ -175,6 +177,8 @@ const Sensor = ({ sensor, sensorReadings }) => {
     }
   }, [])
 
+  console.log(sensorReadings)
+
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
@@ -203,11 +207,11 @@ const Sensor = ({ sensor, sensorReadings }) => {
           ({sensor.latitude}, {sensor.longitude})
         </Typography>
       </Grid>
+
       <Grid item xs={8}>
         <TableContainer style={{ backgroundColor: 'white', borderRadius: '5px' }}>
           <Table stickyHeader aria-label='sticky table'>
             <TableHead>
-      
               <TableRow>
                 <TableCell>#</TableCell>
                 <TableCell>Reading</TableCell>
@@ -219,7 +223,13 @@ const Sensor = ({ sensor, sensorReadings }) => {
               {sensorReadings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(sensorReading => (
                 <TableRow hover role='checkbox' tabIndex={-1} key={sensorReading.id} className='cursor-pointer'>
                   <TableCell>{sensorReading.id}</TableCell>
-                  <TableCell>{sensorReading.readingValues}</TableCell>
+                  <TableCell>
+                    {sensor.type === 'TEXT' || sensor.type === 'AUDIO' ? (
+                      sensorReading.readingValues
+                    ) : (
+                      <img src={sensorReading.readingValues} className='w-10 h-10 rounded-md' />
+                    )}
+                  </TableCell>
                   <TableCell>{formatReadingTime(sensorReading.readingTime)}</TableCell>
                 </TableRow>
               ))}
@@ -238,77 +248,70 @@ const Sensor = ({ sensor, sensorReadings }) => {
         />
       </Grid>
 
-      <Grid item xs={6}>
-        <div
-          style={{
-            backgroundColor: 'white',
-            padding: '1rem',
-            borderRadius: '10px'
-          }}
-        >
-          <Select value={lineChartInterval} onChange={event => setLineChartInterval(event.target.value)}>
-            <MenuItem value='daily'>Daily</MenuItem>
-            <MenuItem value='weekly'>Weekly</MenuItem>
-            <MenuItem value='monthly'>Monthly</MenuItem>
-            <MenuItem value='yearly'>Yearly</MenuItem>
-          </Select>
-
-          {sensorReadings && (
-            <Line
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: {
-                    position: 'top'
-                  },
-                  title: {
-                    display: true,
-                    text: 'Chart.js Line Chart'
-                  }
-                }
+      {sensor.type === 'TEXT' && (
+        <>
+          <Grid item xs={6}>
+            <div
+              style={{
+                backgroundColor: 'white',
+                padding: '1rem',
+                borderRadius: '10px'
               }}
-              data={lineChartState}
-            />
-          )}
-        </div>
-      </Grid>
+            >
+              <Select value={lineChartInterval} onChange={event => setLineChartInterval(event.target.value)}>
+                <MenuItem value='daily'>Daily</MenuItem>
+                <MenuItem value='weekly'>Weekly</MenuItem>
+                <MenuItem value='monthly'>Monthly</MenuItem>
+                <MenuItem value='yearly'>Yearly</MenuItem>
+              </Select>
 
-      <Grid item xs={6}>
-        <div
-          style={{
-            backgroundColor: 'white',
-            padding: '1rem',
-            borderRadius: '10px'
-          }}
-        >
-          <Select value={barChartInterval} onChange={event => setBarChartInterval(event.target.value)}>
-            <MenuItem value='daily'>Daily</MenuItem>
-            <MenuItem value='weekly'>Weekly</MenuItem>
-            <MenuItem value='monthly'>Monthly</MenuItem>
-            <MenuItem value='yearly'>Yearly</MenuItem>
-          </Select>
-
-          {sensorReadings && (
-            <Bar
-              options={{
-                responsive: true
-              }}
-              data={barChartState}
-            />
-          )}
-        </div>
-      </Grid>
-      {/* Render this card based on the sensor type */}
-      <Grid item xs={12}>
-        <Card>
-          <CardHeader title='Image View' subheader='Images captured by the sensor' />
-          <CardContent sx={{ p: 5 }}>
-              <div className='flex justify-center items-center'>
-              <ImageSlider images={imageDict} />
+              {sensorReadings && (
+                <Line
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        position: 'top'
+                      },
+                      title: {
+                        display: true,
+                        text: 'Chart.js Line Chart'
+                      }
+                    }
+                  }}
+                  data={lineChartState}
+                />
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </Grid>
+          </Grid>
+
+          <Grid item xs={6}>
+            <div
+              style={{
+                backgroundColor: 'white',
+                padding: '1rem',
+                borderRadius: '10px'
+              }}
+            >
+              <Select value={barChartInterval} onChange={event => setBarChartInterval(event.target.value)}>
+                <MenuItem value='daily'>Daily</MenuItem>
+                <MenuItem value='weekly'>Weekly</MenuItem>
+                <MenuItem value='monthly'>Monthly</MenuItem>
+                <MenuItem value='yearly'>Yearly</MenuItem>
+              </Select>
+
+              {sensorReadings && (
+                <Bar
+                  options={{
+                    responsive: true
+                  }}
+                  data={barChartState}
+                />
+              )}
+            </div>
+          </Grid>
+        </>
+      )}
     </Grid>
   )
 }
@@ -329,7 +332,7 @@ export const getServerSideProps = async query => {
 
   const serializedSensorReadings = sensorReadings.map(reading => ({
     ...reading,
-    readingValues: parseFloat(reading.readingValues.replace(',', '.')),
+    ...(sensor.type === 'TEXT' && { readingValues: parseFloat(reading.readingValues.replace(',', '.')) }),
     readingTime: reading.readingTime.toISOString()
   }))
 
