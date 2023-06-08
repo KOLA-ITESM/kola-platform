@@ -20,11 +20,9 @@ import {
   TablePagination
 } from '@mui/material'
 import { SensorType } from '@prisma/client'
+import { toast } from 'react-hot-toast'
 
 import { useEffect, useState } from 'react'
-
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
 
 const AddData = () => {
   const [fileCsv, setFileCsv] = useState(null)
@@ -34,7 +32,9 @@ const AddData = () => {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const handleChangePage = (event, newPage) => {
+  const [loading, setLoading] = useState(false)
+
+  const handleChangePage = (_, newPage) => {
     setPage(newPage)
   }
 
@@ -62,18 +62,16 @@ const AddData = () => {
         console.log('Error')
       }
     }
+
     fetchData()
   }, [])
 
-  const handleSensorSelection = async e => {
-    e.preventDefault
-
-    const response = await fetch(`/api/readings?sensorId=${e}`)
+  const handleSensorSelection = async id => {
+    const response = await fetch(`/api/readings?sensorId=${id}`)
 
     if (response.ok) {
       const result = await response.json()
 
-      // todo: cambiar a 200
       if (response.status !== 404) setReadings(result.readings)
       else setReadings([])
     } else {
@@ -83,37 +81,45 @@ const AddData = () => {
 
   const handleSubmit = async e => {
     e.preventDefault()
+    setLoading(true)
 
     if (!fileCsv || !selectedSensor) {
       toast.error('Please fill all the fields')
       return
     }
 
-    const response = await fetch(`/api/readings?csv=true&sensorId=${selectedSensor}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/csv'
-      },
-      body: fileCsv
-    })
+    const createReadings = async () => {
+      const response = await fetch(`/api/readings?csv=true&sensorId=${selectedSensor}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/csv'
+        },
+        body: fileCsv
+      })
 
-    console.log('response', response)
+      if (!response.ok) throw new Error('Error creating readings')
 
-    if (response.ok) {
-      const result = await response.json()
-      toast.success('Readings created successfully')
-      console.log(result)
-      cleanValues()
-    } else {
-      toast.error('Error creating readings')
-      console.log('Error')
+      return await response.json()
     }
+
+    toast.promise(createReadings(), {
+      loading: 'Creating readings...',
+      success: () => {
+        cleanValues()
+        handleSensorSelection(selectedSensor)
+        setLoading(false)
+        return 'Readings created successfully'
+      },
+      error: 'Error creating readings'
+    })
   }
 
   const cleanValues = () => {
     setSelectedSensor('')
     setFileCsv(null)
   }
+
+  const isSubmitDisabled = !fileCsv || !selectedSensor || loading
 
   return (
     <Grid container spacing={3}>
@@ -127,7 +133,6 @@ const AddData = () => {
 
           <CardContent>
             <Grid container spacing={3}>
-              {/*<form onSubmit={handleSubmit}>*/}
               <Grid item xs={12}>
                 <FormControl fullWidth variant='outlined'>
                   <InputLabel id='select-sensor-label'>Select Sensor</InputLabel>
@@ -159,7 +164,6 @@ const AddData = () => {
                   onChange={e => setFileCsv(e.target.files[0])}
                 />
               </Grid>
-              {/*</form>*/}
               <Divider />
             </Grid>
           </CardContent>
@@ -171,7 +175,7 @@ const AddData = () => {
               p: 2
             }}
           >
-            <Button color='primary' variant='contained' onClick={handleSubmit}>
+            <Button color='primary' variant='contained' onClick={handleSubmit} disabled={isSubmitDisabled}>
               Add Data
             </Button>
           </Box>
@@ -212,7 +216,6 @@ const AddData = () => {
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </CardContent>
-          <ToastContainer />
         </Card>
       </Grid>
     </Grid>
