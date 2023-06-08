@@ -11,6 +11,9 @@ module.exports = {
     esmExternals: false,
     jsconfigPaths: true // enables it for both jsconfig.json and tsconfig.json
   },
+  images: {
+    domains: ['images.unsplash.com', 'kola-ingestion-prod.s3.us-east-2.amazonaws.com']
+  },
   webpack: config => {
     config.resolve.alias = {
       ...config.resolve.alias,
