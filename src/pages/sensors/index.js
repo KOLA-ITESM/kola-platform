@@ -4,7 +4,19 @@ import Link from 'next/link'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import CardHeader from '@mui/material/CardHeader'
-import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, TablePagination } from '@mui/material'
+
+import {
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TablePagination,
+  FormControl,
+  InputLabel,
+  Select
+} from '@mui/material'
 
 import prisma from '../../../prisma'
 import { useState } from 'react'
@@ -23,8 +35,9 @@ const getEmojiFromType = type => {
 const Sensors = ({ sensors }) => {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [filterType, setFilterType] = useState('all')
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_, newPage) => {
     setPage(newPage)
   }
 
@@ -33,11 +46,40 @@ const Sensors = ({ sensors }) => {
     setPage(0)
   }
 
+  const handleFilterChange = event => {
+    setFilterType(event.target.value)
+  }
+
+  const filteredSensors = sensors.filter(sensor => filterType === 'all' || sensor.type === filterType)
+
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <Card>
           <CardHeader title='Sensors' titleTypographyProps={{ variant: 'h6' }} />
+
+          <div className='px-3 pb-5'>
+            <FormControl>
+              <InputLabel htmlFor='filter-type'>Type</InputLabel>
+              <Select
+                native
+                value={filterType}
+                onChange={handleFilterChange}
+                inputProps={{
+                  name: 'type',
+                  id: 'filter-type'
+                }}
+                style={{
+                  marginTop: 15
+                }}
+              >
+                <option value='all'>All</option>
+                <option value='TEXT'>Text</option>
+                <option value='IMAGE'>Image</option>
+                <option value='AUDIO'>Audio</option>
+              </Select>
+            </FormControl>
+          </div>
 
           <TableContainer sx={{ maxHeight: 600 }}>
             <Table stickyHeader aria-label='sticky table'>
@@ -54,7 +96,7 @@ const Sensors = ({ sensors }) => {
               </TableHead>
 
               <TableBody>
-                {sensors.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(sensor => (
+                {filteredSensors.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(sensor => (
                   <Link key={sensor.id} href={`/sensors/${sensor.id}`}>
                     <TableRow hover role='checkbox' tabIndex={-1} key={sensor.id} className='cursor-pointer'>
                       <TableCell>{sensor.id}</TableCell>
