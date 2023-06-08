@@ -91,6 +91,11 @@ const AddSensors = () => {
       return
     }
 
+    if (!isValidCoordinates(latitude, longitude)) {
+      toast.error('Invalid range for coordinates')
+      return
+    }
+
     const data = {
       name: sensorName,
       type: sensorType,
