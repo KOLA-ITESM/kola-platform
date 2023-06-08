@@ -1,6 +1,7 @@
 // ** Next Imports
 import Head from 'next/head'
 import { Router } from 'next/router'
+import { Toaster } from 'react-hot-toast'
 
 // ** Library Imports
 import {
@@ -98,6 +99,8 @@ const App = props => {
           }}
         </SettingsConsumer>
       </SettingsProvider>
+
+      <Toaster />
     </CacheProvider>
   )
 }

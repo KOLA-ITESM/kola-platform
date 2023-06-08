@@ -74,7 +74,7 @@ const Sensors = ({ sensors }) => {
                 }}
               >
                 <option value='all'>All</option>
-                <option value='TEXT'>Text</option>
+                <option value='TEXT'>Numerical</option>
                 <option value='IMAGE'>Image</option>
                 <option value='AUDIO'>Audio</option>
               </Select>

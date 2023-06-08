@@ -12,16 +12,24 @@ import {
   InputLabel,
   MenuItem
 } from '@mui/material'
+import { toast } from 'react-hot-toast'
 
 import mapboxgl from 'mapbox-gl'
 
 import { useEffect, useRef, useState } from 'react'
 
-import { ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import { toast } from 'react-toastify'
-
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2cTJlMHlzY2UifQ.-0tFUeRnCr8jISRMn_CRvw'
+
+const isValidCoordinates = (lat, lng) => {
+  const latNum = parseFloat(lat)
+  const lngNum = parseFloat(lng)
+
+  if (isNaN(latNum) || isNaN(lngNum)) {
+    return false
+  }
+
+  return latNum <= 90 && latNum >= -90 && lngNum <= 180 && lngNum >= -180
+}
 
 const AddSensors = () => {
   const mapContainer = useRef()
@@ -35,6 +43,8 @@ const AddSensors = () => {
   const [location, setLocation] = useState('')
   const [sensorType, setSensorType] = useState('')
 
+  const [loading, setLoading] = useState(false)
+
   useEffect(() => {
     const newMap = new mapboxgl.Map({
       container: mapContainer.current,
@@ -43,6 +53,8 @@ const AddSensors = () => {
       zoom: 10
     })
 
+    const newMarker = new mapboxgl.Marker()
+    setMarker(newMarker)
     setMap(newMap)
 
     return () => {
@@ -51,10 +63,16 @@ const AddSensors = () => {
   }, [])
 
   useEffect(() => {
-    if (map && marker) {
+    if (map && latitude && longitude && isValidCoordinates(latitude, longitude)) {
       marker.setLngLat([longitude, latitude]).addTo(map)
+
+      // center map on marker
+      map.flyTo({
+        center: [longitude, latitude],
+        zoom: 15
+      })
     }
-  }, [map, marker, latitude, longitude])
+  }, [marker, latitude, longitude])
 
   const handleLongitudeChange = e => {
     setLongitude(e.target.value)
@@ -64,8 +82,9 @@ const AddSensors = () => {
     setLatitude(e.target.value)
   }
 
-  const handleSubmit = async e => {
+  const handleSubmit = e => {
     e.preventDefault()
+    setLoading(true)
 
     if (!sensors || !sensorName || !latitude || !longitude || !location || !sensorType) {
       toast.error('Please fill all the fields')
@@ -80,25 +99,39 @@ const AddSensors = () => {
       longitude: longitude
     }
 
-    console.log(data)
+    const createSensor = async () => {
+      const response = await fetch('/api/sensor?csv=false', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
 
-    const response = await fetch('/api/sensor?csv=false', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    })
+      if (!response.ok) {
+        throw new Error('Error creating sensor, please try again')
+      }
 
-    if (response.ok) {
-      const result = await response.json()
-      toast.success('Sensor created successfully')
-      console.log(result)
-    } else {
-      toast.error('Error creating sensor')
-      console.log('Error')
+      return await response.json()
     }
+
+    toast.promise(createSensor(), {
+      loading: 'Creating sensor...',
+      success: () => {
+        setSensorName('')
+        setLatitude('')
+        setLongitude('')
+        setSensors('')
+        setLocation('')
+        setSensorType('')
+        setLoading(false)
+        return 'Sensor created successfully'
+      },
+      error: 'Error creating sensor, please try again'
+    })
   }
+
+  const isSubmitDisabled = !sensors || !sensorName || !latitude || !longitude || !location || !sensorType || loading
 
   return (
     <Grid container spacing={3}>
@@ -112,10 +145,10 @@ const AddSensors = () => {
                   fullWidth
                   label='Sensor ID'
                   name='sensorType'
-                  required
                   variant='outlined'
                   value={sensors}
                   onChange={e => setSensors(e.target.value)}
+                  required
                 />
               </Grid>
               <Divider />
@@ -124,10 +157,11 @@ const AddSensors = () => {
                   fullWidth
                   label='Latitude'
                   name='latitude'
-                  required
+                  type='number'
                   variant='outlined'
                   value={latitude}
                   onChange={handleLatitudeChange}
+                  required
                 />
               </Grid>
               <Grid item xs={6}>
@@ -135,10 +169,11 @@ const AddSensors = () => {
                   fullWidth
                   label='Longitude'
                   name='longitude'
-                  required
+                  type='number'
                   variant='outlined'
                   value={longitude}
                   onChange={handleLongitudeChange}
+                  required
                 />
               </Grid>
               <Grid item xs={12}>
@@ -192,10 +227,9 @@ const AddSensors = () => {
               p: 2
             }}
           >
-            <Button color='primary' variant='contained' onClick={handleSubmit}>
+            <Button color='primary' variant='contained' onClick={handleSubmit} disabled={isSubmitDisabled}>
               Add Data
             </Button>
-            <ToastContainer />
           </Box>
         </Card>
       </Grid>
