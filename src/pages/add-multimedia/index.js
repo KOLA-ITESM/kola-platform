@@ -20,11 +20,8 @@ import {
   TableBody,
   TablePagination
 } from '@mui/material'
-
 import { useEffect, useState } from 'react'
-
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { toast } from 'react-hot-toast'
 
 import { DropzoneArea } from 'material-ui-dropzone'
 
@@ -40,6 +37,7 @@ const AddMultimedia = () => {
   const [files, setFiles] = useState([])
 
   const [fileReadingDates, setFileReadingDates] = useState({})
+  const [loading, setLoading] = useState(false)
 
   const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET
   const REGION = process.env.NEXT_PUBLIC_REGION
@@ -53,9 +51,7 @@ const AddMultimedia = () => {
     params: { Bucket: S3_BUCKET }
   })
 
-  console.log({ s3 })
-
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_, newPage) => {
     setPage(newPage)
   }
 
@@ -88,15 +84,12 @@ const AddMultimedia = () => {
     fetchData()
   }, [])
 
-  const handleSensorSelection = async e => {
-    e.preventDefault
-
-    const response = await fetch(`/api/readings?sensorId=${e}`)
+  const handleSensorSelection = async id => {
+    const response = await fetch(`/api/readings?sensorId=${id}`)
 
     if (response.ok) {
       const result = await response.json()
 
-      // todo: cambiar a 200
       if (response.status !== 404) setReadings(result.readings)
       else setReadings([])
     } else {
@@ -104,23 +97,20 @@ const AddMultimedia = () => {
     }
   }
 
-  const handleSubmit = async e => {
+  const handleSubmit = e => {
     e.preventDefault()
 
     const promises = []
-    try {
-      files.forEach(file => {
-        const params = {
-          Bucket: S3_BUCKET,
-          Key: file.name,
-          Body: file
-        }
-        promises.push(s3.upload(params).promise())
-      })
+    files.forEach(file => {
+      const params = {
+        Bucket: S3_BUCKET,
+        Key: file.name,
+        Body: file
+      }
+      promises.push(s3.upload(params).promise())
+    })
 
-      const results = await Promise.all(promises)
-
-      // upload each image in resultUrls array to database through api
+    const uploadToDatabase = async results => {
       for (let result of results) {
         const response = await fetch(`/api/readings?mediaUrl=true&sensorId=${selectedSensor}`, {
           method: 'POST',
@@ -135,13 +125,18 @@ const AddMultimedia = () => {
 
         if (!response.ok) throw new Error('Error uploading media files, please try again')
       }
-
-      cleanValues()
-      toast.success('Media files uploaded successfully!')
-    } catch (error) {
-      toast.error('Error uploading media files, please try again')
-      console.log(error)
     }
+
+    toast.promise(Promise.all(promises).then(uploadToDatabase), {
+      loading: 'Uploading media files...',
+      success: () => {
+        cleanValues()
+        handleSensorSelection(selectedSensor)
+        setLoading(false)
+        return 'Media files uploaded successfully!'
+      },
+      error: 'Error uploading media files, please try again'
+    })
   }
 
   const cleanValues = () => {
@@ -149,6 +144,9 @@ const AddMultimedia = () => {
     setFiles([])
     setFileReadingDates({})
   }
+
+  const isSubmitDisabled =
+    !selectedSensor || files.length === 0 || Object.keys(fileReadingDates).length !== files.length || loading
 
   return (
     <Grid container spacing={3}>
@@ -232,8 +230,8 @@ const AddMultimedia = () => {
               p: 2
             }}
           >
-            <Button color='primary' variant='contained' onClick={handleSubmit}>
-              Upload data
+            <Button color='primary' variant='contained' onClick={handleSubmit} disabled={isSubmitDisabled}>
+              Add Data
             </Button>
           </Box>
         </Card>
@@ -279,7 +277,6 @@ const AddMultimedia = () => {
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </CardContent>
-          <ToastContainer />
         </Card>
       </Grid>
     </Grid>
