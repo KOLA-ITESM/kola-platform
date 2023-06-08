@@ -80,15 +80,19 @@ const transformForBarChart = groupedReadings => {
   }
 }
 
+function createImageDict(inputArray) {
+  const imageDict = {}
+
+  inputArray.forEach(item => {
+    const readingTime = new Date(item.readingTime).getTime() / 1000 // convert to seconds
+
+    imageDict[readingTime] = item.readingValues
+  })
+
+  return imageDict
+}
+
 const Sensor = ({ sensor, sensorReadings }) => {
-  const imageDict = {
-    1622295000: 'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d',
-    1622298600: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713',
-    1622302200: 'https://images.unsplash.com/photo-1533134486753-c833f0ed4866'
-  }
-
-  console.log(sensor?.type)
-
   const mapContainer = useRef()
 
   const [page, setPage] = useState(0)
@@ -247,6 +251,19 @@ const Sensor = ({ sensor, sensorReadings }) => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Grid>
+
+      {sensor.type === 'IMAGE' && (
+        <Grid item xs={4} className='mt-5'>
+          <Card>
+            <CardHeader title='Image View' subheader='Images captured by the sensor' />
+            <CardContent sx={{ p: 5 }}>
+              <div className='flex justify-center items-center'>
+                <ImageSlider images={createImageDict(sensorReadings)} />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
+      )}
 
       {sensor.type === 'TEXT' && (
         <>
