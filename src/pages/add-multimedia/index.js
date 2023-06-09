@@ -13,7 +13,6 @@ import {
   MenuItem,
   TableContainer,
   Table,
-  TextField,
   TableHead,
   TableRow,
   TableCell,
@@ -28,6 +27,16 @@ import { DropzoneArea } from 'material-ui-dropzone'
 import AWS from 'aws-sdk'
 import { SensorType } from '@prisma/client'
 
+const extractDateTimeFromFile = fileName => {
+  const dateTimePattern = /\d{8}_\d{4}/
+  const match = fileName.match(dateTimePattern)
+  if (match) {
+    const [year, month, day, hour, minute] = match[0].match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})/).slice(1)
+    return `${year}-${month}-${day}T${hour}:${minute}`
+  }
+  return ''
+}
+
 const AddMultimedia = () => {
   const [selectedSensor, setSelectedSensor] = useState('')
   const [sensors, setSensors] = useState([])
@@ -36,7 +45,6 @@ const AddMultimedia = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [files, setFiles] = useState([])
 
-  const [fileReadingDates, setFileReadingDates] = useState({})
   const [loading, setLoading] = useState(false)
 
   const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET
@@ -101,6 +109,7 @@ const AddMultimedia = () => {
     e.preventDefault()
 
     const promises = []
+    const readingDateValues = {}
     files.forEach(file => {
       const params = {
         Bucket: S3_BUCKET,
@@ -108,6 +117,11 @@ const AddMultimedia = () => {
         Body: file
       }
       promises.push(s3.upload(params).promise())
+
+      const dateTime = extractDateTimeFromFile(file.name)
+      if (dateTime) {
+        readingDateValues[file.name] = dateTime
+      }
     })
 
     const uploadToDatabase = async results => {
@@ -119,7 +133,7 @@ const AddMultimedia = () => {
           },
           body: JSON.stringify({
             mediaUrl: result.Location,
-            readingDate: fileReadingDates[result.Key]
+            readingDate: readingDateValues[result.Key]
           })
         })
 
@@ -142,11 +156,9 @@ const AddMultimedia = () => {
   const cleanValues = () => {
     setSelectedSensor('')
     setFiles([])
-    setFileReadingDates({})
   }
 
-  const isSubmitDisabled =
-    !selectedSensor || files.length === 0 || Object.keys(fileReadingDates).length !== files.length || loading
+  const isSubmitDisabled = !selectedSensor || files.length === 0 || loading
 
   return (
     <Grid container spacing={3}>
@@ -190,7 +202,7 @@ const AddMultimedia = () => {
                   dropzoneText='Drag and drop an image or audio file here or click'
                   onChange={files => setFiles(files)}
                   filesLimit={10}
-                  maxFileSize={5000000}
+                  maxFileSize={50000000000}
                   showPreviews={true}
                   showPreviewsInDropzone={false}
                   clearOnUnmount={true}
@@ -198,28 +210,6 @@ const AddMultimedia = () => {
               </Grid>
 
               <Divider />
-
-              {files.length > 0 && (
-                <Grid item xs={12}>
-                  <Typography variant='h6' gutterBottom>
-                    Specify date data for each file
-                  </Typography>
-
-                  {files.map(file => (
-                    <div key={file.name} className='space-y-2 mb-2'>
-                      <p>File: {file.name}</p>
-                      <TextField
-                        id='outlined-basic'
-                        variant='outlined'
-                        type='datetime-local'
-                        onChange={e => {
-                          setFileReadingDates(prevState => ({ ...prevState, [file.name]: e.target.value }))
-                        }}
-                      />
-                    </div>
-                  ))}
-                </Grid>
-              )}
             </Grid>
           </CardContent>
           <Divider />
