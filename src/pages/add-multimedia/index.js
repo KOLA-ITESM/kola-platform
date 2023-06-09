@@ -38,7 +38,7 @@ const extractDateTimeFromFile = fileName => {
 }
 
 const AddMultimedia = () => {
-  const [selectedSensor, setSelectedSensor] = useState('')
+  const [selectedSensor, setSelectedSensor] = useState({ id: '', type: '' })
   const [sensors, setSensors] = useState([])
   const [readings, setReadings] = useState([])
   const [page, setPage] = useState(0)
@@ -92,7 +92,7 @@ const AddMultimedia = () => {
     fetchData()
   }, [])
 
-  const handleSensorSelection = async id => {
+  const handleSensorSelection = async (id, type) => {
     const response = await fetch(`/api/readings?sensorId=${id}`)
 
     if (response.ok) {
@@ -103,6 +103,8 @@ const AddMultimedia = () => {
     } else {
       console.log('Error')
     }
+
+    setSelectedSensor({ id, type })
   }
 
   const handleSubmit = e => {
@@ -110,7 +112,18 @@ const AddMultimedia = () => {
 
     const promises = []
     const readingDateValues = {}
-    files.forEach(file => {
+    for (const file of files) {
+      const isImage = file.type.startsWith('image')
+      const isAudio = file.type.startsWith('audio')
+
+      if (
+        (isImage && selectedSensor.type !== SensorType.IMAGE) ||
+        (isAudio && selectedSensor.type !== SensorType.AUDIO)
+      ) {
+        toast.error('File type does not match sensor type')
+        return
+      }
+
       const params = {
         Bucket: S3_BUCKET,
         Key: file.name,
@@ -122,7 +135,7 @@ const AddMultimedia = () => {
       if (dateTime) {
         readingDateValues[file.name] = dateTime
       }
-    })
+    }
 
     const uploadToDatabase = async results => {
       for (let result of results) {
@@ -180,9 +193,10 @@ const AddMultimedia = () => {
                     id='select-sensor'
                     label='Select Sensor'
                     required
-                    value={selectedSensor}
+                    value={selectedSensor.id}
                     onChange={e => {
-                      setSelectedSensor(e.target.value), handleSensorSelection(e.target.value)
+                      const sensor = sensors.find(sensor => sensor.id === e.target.value)
+                      handleSensorSelection(sensor.id, sensor.type)
                     }}
                   >
                     {sensors.map(sensor => {
