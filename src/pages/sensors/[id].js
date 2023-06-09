@@ -11,7 +11,7 @@ import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Table
 import mapboxgl from 'mapbox-gl'
 import prisma from '../../../prisma'
 import { parseCoordinate } from 'src/@core/utils/parse-coordinates'
-import ImageSlider from './ImageSlider'
+import ImageSlider from '../../@core/components/image-slider'
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2ViZnJvbWxoIiwiYSI6ImNsZ2hkNmNodzAwMmkzZXA2cTJlMHlzY2UifQ.-0tFUeRnCr8jISRMn_CRvw'
 
