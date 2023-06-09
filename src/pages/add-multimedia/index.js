@@ -13,7 +13,6 @@ import {
   MenuItem,
   TableContainer,
   Table,
-  TextField,
   TableHead,
   TableRow,
   TableCell,
@@ -28,15 +27,24 @@ import { DropzoneArea } from 'material-ui-dropzone'
 import AWS from 'aws-sdk'
 import { SensorType } from '@prisma/client'
 
+const extractDateTimeFromFile = fileName => {
+  const dateTimePattern = /\d{8}_\d{4}/
+  const match = fileName.match(dateTimePattern)
+  if (match) {
+    const [year, month, day, hour, minute] = match[0].match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})/).slice(1)
+    return `${year}-${month}-${day}T${hour}:${minute}`
+  }
+  return ''
+}
+
 const AddMultimedia = () => {
-  const [selectedSensor, setSelectedSensor] = useState('')
+  const [selectedSensor, setSelectedSensor] = useState({ id: '', type: '' })
   const [sensors, setSensors] = useState([])
   const [readings, setReadings] = useState([])
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [files, setFiles] = useState([])
 
-  const [fileReadingDates, setFileReadingDates] = useState({})
   const [loading, setLoading] = useState(false)
 
   const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET
@@ -84,7 +92,7 @@ const AddMultimedia = () => {
     fetchData()
   }, [])
 
-  const handleSensorSelection = async id => {
+  const handleSensorSelection = async (id, type) => {
     const response = await fetch(`/api/readings?sensorId=${id}`)
 
     if (response.ok) {
@@ -95,20 +103,39 @@ const AddMultimedia = () => {
     } else {
       console.log('Error')
     }
+
+    setSelectedSensor({ id, type })
   }
 
   const handleSubmit = e => {
     e.preventDefault()
 
     const promises = []
-    files.forEach(file => {
+    const readingDateValues = {}
+    for (const file of files) {
+      const isImage = file.type.startsWith('image')
+      const isAudio = file.type.startsWith('audio')
+
+      if (
+        (isImage && selectedSensor.type !== SensorType.IMAGE) ||
+        (isAudio && selectedSensor.type !== SensorType.AUDIO)
+      ) {
+        toast.error('File type does not match sensor type')
+        return
+      }
+
       const params = {
         Bucket: S3_BUCKET,
         Key: file.name,
         Body: file
       }
       promises.push(s3.upload(params).promise())
-    })
+
+      const dateTime = extractDateTimeFromFile(file.name)
+      if (dateTime) {
+        readingDateValues[file.name] = dateTime
+      }
+    }
 
     const uploadToDatabase = async results => {
       for (let result of results) {
@@ -119,7 +146,7 @@ const AddMultimedia = () => {
           },
           body: JSON.stringify({
             mediaUrl: result.Location,
-            readingDate: fileReadingDates[result.Key]
+            readingDate: readingDateValues[result.Key]
           })
         })
 
@@ -142,11 +169,9 @@ const AddMultimedia = () => {
   const cleanValues = () => {
     setSelectedSensor('')
     setFiles([])
-    setFileReadingDates({})
   }
 
-  const isSubmitDisabled =
-    !selectedSensor || files.length === 0 || Object.keys(fileReadingDates).length !== files.length || loading
+  const isSubmitDisabled = !selectedSensor || files.length === 0 || loading
 
   return (
     <Grid container spacing={3}>
@@ -168,9 +193,10 @@ const AddMultimedia = () => {
                     id='select-sensor'
                     label='Select Sensor'
                     required
-                    value={selectedSensor}
+                    value={selectedSensor.id}
                     onChange={e => {
-                      setSelectedSensor(e.target.value), handleSensorSelection(e.target.value)
+                      const sensor = sensors.find(sensor => sensor.id === e.target.value)
+                      handleSensorSelection(sensor.id, sensor.type)
                     }}
                   >
                     {sensors.map(sensor => {
@@ -190,7 +216,7 @@ const AddMultimedia = () => {
                   dropzoneText='Drag and drop an image or audio file here or click'
                   onChange={files => setFiles(files)}
                   filesLimit={10}
-                  maxFileSize={5000000}
+                  maxFileSize={50000000000}
                   showPreviews={true}
                   showPreviewsInDropzone={false}
                   clearOnUnmount={true}
@@ -198,28 +224,6 @@ const AddMultimedia = () => {
               </Grid>
 
               <Divider />
-
-              {files.length > 0 && (
-                <Grid item xs={12}>
-                  <Typography variant='h6' gutterBottom>
-                    Specify date data for each file
-                  </Typography>
-
-                  {files.map(file => (
-                    <div key={file.name} className='space-y-2 mb-2'>
-                      <p>File: {file.name}</p>
-                      <TextField
-                        id='outlined-basic'
-                        variant='outlined'
-                        type='datetime-local'
-                        onChange={e => {
-                          setFileReadingDates(prevState => ({ ...prevState, [file.name]: e.target.value }))
-                        }}
-                      />
-                    </div>
-                  ))}
-                </Grid>
-              )}
             </Grid>
           </CardContent>
           <Divider />
