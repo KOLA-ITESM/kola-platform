@@ -140,7 +140,7 @@ const AddMultimedia = () => {
 
     const uploadToDatabase = async results => {
       for (let result of results) {
-        const response = await fetch(`/api/readings?mediaUrl=true&sensorId=${selectedSensor}`, {
+        const response = await fetch(`/api/readings?mediaUrl=true&sensorId=${selectedSensor.id}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
