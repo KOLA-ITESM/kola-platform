@@ -81,7 +81,8 @@ const AddMultimedia = () => {
           .filter(sensor => sensor.type === SensorType.AUDIO || sensor.type === SensorType.IMAGE)
           .map(sensor => ({
             id: sensor.id,
-            name: sensor.name
+            name: sensor.name,
+            type: sensor.type
           }))
         setSensors(sensorIds)
       } else {

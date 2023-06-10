@@ -89,9 +89,6 @@ export default async function handler(req, res) {
       const readingDate = req.body.readingDate
       const sensorId = parseInt(req.query.sensorId)
 
-      console.log('mediaUrl', mediaUrl)
-      console.log('readingDate', readingDate)
-
       const newReading = await prisma.sensorReading.create({
         data: {
           readingId: sensorId + '-' + new Date().toISOString().replace(/[:.-]/g, ''),
